@@ -37,7 +37,7 @@ static bool detected();
 
 const char *ssid = "Rakib";                                // Your SSID
 const char *password = "rakib@2024";                       // Your PASS
-#define serverUrl "http://192.168.0.103:8888/uploadAudio"  // Change the IP Address according To Your Server's config
+#define serverUrl "http://192.168.0.106:8888/uploadAudio"  // Change the IP Address according To Your Server's config
 
 ESpeech STT(ssid, password, serverUrl);
 GeminiESP32 assistant("", "", "AIzaSyDPNTBZEBFmlZBIStC-ExslDAMQPudkuOE");
@@ -46,23 +46,41 @@ void setup() {
   Serial.begin(115200);
   delay(500);
   Serial.printf("Free Heap at first: %d\n", ESP.getFreeHeap());
-  delay(5000);
+  audioInit();
+  Serial.printf("Free Heap after i2s amplifier took place: %d\n", ESP.getFreeHeap());
+  delay(500);
   initwakeword();
+  Serial.printf("Free Heap after i2s microphone wakeword took place: %d\n", ESP.getFreeHeap());
+  delay(500);
   STT.begin();
+  Serial.printf("Free Heap after i2s microphone STT took place: %d\n", ESP.getFreeHeap());
+  delay(5000);
 
 }
 
 void loop() {
   Serial.printf("Free Heap before detection: %d\n", ESP.getFreeHeap());
   if (detected()) {
+    if (inference.buffer != NULL) {
+    free(inference.buffer);  // Free the allocated memory previously allocated in rtos task
+    inference.buffer = NULL; // Set the pointer to NULL to avoid dangling pointers
+    record_status = false;
+    }
     Serial.printf("Free Heap after detection: %d\n", ESP.getFreeHeap());
     delay(2000);
     STT.recordAudio();
     Serial.printf("Free Heap after stt record: %d\n", ESP.getFreeHeap());
-    Serial.println(STT.getTranscription());
+    String intent=STT.getTranscription();
+    Serial.println(intent);
+    String answer=assistant.askQuestion(intent);
+    Serial.println(answer);
+    audioConnecttoSpeech(answer.c_str(), "en");
+    delay(10000);
     Serial.printf("Free Heap after stt transcript: %d\n", ESP.getFreeHeap());
-    
-  }
+    if (microphone_inference_start(EI_CLASSIFIER_RAW_SAMPLE_COUNT) == false) {
+    ei_printf("ERR: Could not allocate audio buffer (size %d), this could be due to the window length of your model\r\n", EI_CLASSIFIER_RAW_SAMPLE_COUNT);
+     }
+}
 }
 
 
@@ -226,6 +244,7 @@ static bool detected() {
     ei_printf("\n");
   }
   if (result.classification[1].value > 0.9) {
+    record_status=false;
     i2s_zero_dma_buffer((i2s_port_t)1);
     delay(50);
     return true;

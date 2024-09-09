@@ -1,9 +1,9 @@
 #include "ESpeech.h"
-#define SERVER_URL "http://192.168.0.103:8888/uploadAudio" // Change the IP Address according To Your Server's config
+#define SERVER_URL "http://192.168.0.106:8888/uploadAudio" // Change the IP Address according To Your Server's config
 #define I2S_WS 16
 #define I2S_SD 7
 #define I2S_SCK 15
-#define I2S_PORT I2S_NUM_0
+#define I2S_PORT I2S_NUM_1
 #define I2S_SAMPLE_RATE (16000)
 #define I2S_SAMPLE_BITS (16)
 #define I2S_READ_LEN (16 * 1024)
@@ -29,7 +29,7 @@ void ESpeech::recordAudio() {
     delay(50);
     Serial.printf("recordAudio 0"); 
     i2s_zero_dma_buffer(I2S_PORT); //clear DMA Buffers 
-    delay(50);
+  delay(50);
     Serial.printf("recordAudio 1");
     FFATInit();                     // Reinitialize FFat for new file
     delay(500);                     // Add a small delay
@@ -99,7 +99,7 @@ void ESpeech::i2sInit() {
         .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
         .dma_buf_count = 8,
-        .dma_buf_len = 1024,
+        .dma_buf_len = 512,
         .use_apll = false,
         .tx_desc_auto_clear = true,
         .fixed_mclk = 0
@@ -119,9 +119,7 @@ void ESpeech::i2sInit() {
 
 void ESpeech::i2sDeInit(){  
   i2s_zero_dma_buffer(I2S_PORT); //clear DMA Buffers  
-  delay(100);
   i2s_driver_uninstall(I2S_PORT); //stop & destroy i2s driver
-  delay(100);
   }
 
 void ESpeech::i2s_adc() {
@@ -150,11 +148,13 @@ void ESpeech::i2s_adc() {
         ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
     }
     file.close();
-
+    if(i2s_read_buff!=NULL){
     free(i2s_read_buff);
     i2s_read_buff = NULL;
+    }
+    if(flash_write_buff!=NULL){
     free(flash_write_buff);
-    flash_write_buff = NULL;
+    flash_write_buff = NULL;}
     listFFAT();
 }
 
