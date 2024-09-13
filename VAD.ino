@@ -71,7 +71,8 @@ bool VAD::vadDetect() {
     // Read audio data from I2S
     size_t bytesRead;
     i2s_read(I2S_PORT, (char *)i2sBuffer, FFT_SIZE * sizeof(int16_t), &bytesRead, portMAX_DELAY);
-    apply_gain(i2sBuffer,FFT_SIZE / sizeof(int16_t));
+    apply_gain(i2sBuffer, FFT_SIZE / sizeof(int16_t));
+
     // Convert I2S buffer to double array for FFT processing
     for (int i = 0; i < FFT_SIZE; i++) {
         vReal[i] = (double)i2sBuffer[i];  // Real part
@@ -91,14 +92,12 @@ bool VAD::vadDetect() {
     float noise = smoothedEnergy - energy;
 
     // Concatenate data into a single string
-    String output = "Energy:" + String(energy) + " "+
-                    "Senergy:"+String(smoothedEnergy)+" "+
-                    "Noise:" + String(noise) + " "+
+    String output = "Energy:" + String(energy) + " " +
+                    "Senergy:" + String(smoothedEnergy) + " " +
+                    "Noise:" + String(noise) + " " +
                     "Speech:" + (speechDetected ? "6000000000" : "0");
     
-    // Print the concatenated string
-    //Serial.println(output);
-    if(speechDetected)Serial.println(speechDetected);
+    if (speechDetected) Serial.println(speechDetected);
 
     return speechDetected;
 }
@@ -130,10 +129,6 @@ bool VAD::isSpeechDetected() {
     // Calculate the average energy
     float averageEnergy = sqrt(energy / (endIndex - startIndex));
 
-    // Print the energy value for debugging
-    //Serial.print("Average Energy: ");
-    //Serial.println(averageEnergy);
-
     // Compare energy with threshold
     return (averageEnergy > SPEECH_THRESHOLD);
 }
@@ -142,66 +137,99 @@ float VAD::smoothValue(float newValue, float oldValue, float alpha) {
     return alpha * oldValue + (1 - alpha) * newValue;
 }
 
-
+// Global variables
 VAD myVad;
 unsigned long maxTime = 10000;  // Maximum recording time in milliseconds
 unsigned long bonusTime = 2000; // Bonus time in milliseconds
 unsigned long startTime = 0;
 bool recording = false;
 bool bonusStarted = false;
-bool listening = false; // New flag to manage listening state
+bool listening = false;
 
-void setup() {
-    Serial.begin(115200);
-    myVad.i2sInit();
-}
+// FreeRTOS Task handles
+TaskHandle_t vadTaskHandle = NULL;
+TaskHandle_t serialTaskHandle = NULL;
 
-void loop() {
-    if (Serial.available() > 0) {
-        String cmd = Serial.readString();
-        if (cmd.compareTo("start") == 0) {
-            listening = true;
-            Serial.println("Start Listening Command Received");
-            startTime = millis();  // Start the timing for recording
-            recording = true;     // Set recording flag
-            bonusStarted = false; // Reset bonus flag
-        }
-    }
-
-    if (listening) {
-        unsigned long currentTime = millis();
-        
-        if (recording) {
-            if (myVad.vadDetect()) {
-                bonusStarted = false;
-                startTime = millis(); // Reset start time when speech is detected
-                Serial.println("yey");
-            } else {
-                if (!bonusStarted) {
-                    if (currentTime - startTime >= maxTime) {
-                        // Stop recording if maximum time has expired
-                        Serial.println("Stop Listening - Max Time Expired");
-                        recording = false;
-                        listening = false; // Stop listening
-                        startTime = 0;     // Reset start time
-                    } else if (currentTime - startTime >= bonusTime) {
-                        // Stop recording if bonus time has expired
-                        Serial.println("Stop Listening - Bonus Time Expired");
-                        recording = false;
-                        bonusStarted = false; // Reset bonus flag
-                        startTime = 0;        // Reset start time
-                    }
+// VAD Task (Core 0)
+void vadTask(void *pvParameters) {
+    while (true) {
+        if (listening) {
+            unsigned long currentTime = millis();
+            if (recording) {
+                if (myVad.vadDetect()) {
+                    bonusStarted = false;
+                    startTime = millis(); // Reset start time when speech is detected
+                    Serial.println("Speech Detected!");
                 } else {
-                    if (currentTime - startTime >= bonusTime) {
-                        // Stop recording if bonus time has expired
-                        Serial.println("Stop Listening - Bonus Time Expired");
-                        recording = false;
-                        bonusStarted = false; // Reset bonus flag
-                        startTime = 0;        // Reset start time
+                    if (!bonusStarted) {
+                        if (currentTime - startTime >= maxTime) {
+                            // Stop recording if maximum time has expired
+                            Serial.println("Stop Listening - Max Time Expired");
+                            recording = false;
+                            listening = false; // Stop listening
+                            startTime = 0;     // Reset start time
+                            vTaskDelete(vadTaskHandle);
+                        } else if (currentTime - startTime >= bonusTime) {
+                            // Stop recording if bonus time has expired
+                            Serial.println("Stop Listening - Bonus Time Expired");
+                            recording = false;
+                            bonusStarted = false; // Reset bonus flag
+                            startTime = 0;        // Reset start time
+                            vTaskDelete(vadTaskHandle);
+                        }
                     }
                 }
             }
         }
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Avoid task starvation
     }
 }
 
+// Serial Task (Core 1)
+void serialTask(void *pvParameters) {
+    while (true) {
+        if (Serial.available() > 0) {
+            String cmd = Serial.readString();
+            if (cmd.compareTo("start") == 0) {
+                  // Create VAD task on Core 0
+            xTaskCreatePinnedToCore(
+            vadTask,      // Task function
+            "VAD Task",   // Task name
+            4096,         // Stack size
+            NULL,         // Task input parameter
+            1,            // Task priority
+            &vadTaskHandle,  // Task handle
+            0             // Core ID
+            );
+                listening = true;
+                Serial.println("Start Listening Command Received");
+                startTime = millis();  // Start the timing for recording
+                recording = true;     // Set recording flag
+                bonusStarted = false; // Reset bonus flag
+            }
+        }
+        vTaskDelay(10 / portTICK_PERIOD_MS); // Avoid task starvation
+    }
+}
+
+void setup() {
+    Serial.begin(115200);
+    myVad.i2sInit();
+
+
+
+    // Create Serial task on Core 1
+    xTaskCreatePinnedToCore(
+        serialTask,      // Task function
+        "Serial Task",   // Task name
+        4096,            // Stack size
+        NULL,            // Task input parameter
+        1,               // Task priority
+        &serialTaskHandle,  // Task handle
+        1                // Core ID
+    );
+}
+
+void loop() {
+    // Empty loop since tasks handle everything
+}
