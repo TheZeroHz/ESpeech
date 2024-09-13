@@ -2,7 +2,7 @@
 #include "driver/i2s.h"
 
 #define I2S_SAMPLE_RATE 16000
-#define FFT_SIZE (2048)
+#define FFT_SIZE (256)
 #define SPEECH_THRESHOLD 3000
 #define NOISE_THRESHOLD 1000  //within 800-1200
 #define SPEECH_FREQ_MIN 300
@@ -76,7 +76,6 @@ bool VAD::vadDetect() {
     for (int i = 0; i < FFT_SIZE; i++) {
         vReal[i] = (double)i2sBuffer[i];  // Real part
         vImag[i] = 0;                     // Imaginary part set to zero
-        //Serial.println(String("audio:")+String(" ")+String(i2sBuffer[i]));
     }
 
     // Perform FFT
@@ -87,7 +86,7 @@ bool VAD::vadDetect() {
     // Detect speech and calculate energy and noise
     bool speechDetected = isSpeechDetected();
     float energy = calculateEnergy(vReal, FFT_SIZE);
-    float smoothedEnergy = smoothValue(energy, previousEnergy, 0.96);  // Smoothing with alpha = 0.9
+    float smoothedEnergy = smoothValue(energy, previousEnergy, 0.95);  // Smoothing with alpha = 0.9
     previousEnergy = smoothedEnergy;
     float noise = smoothedEnergy - energy;
 
@@ -98,7 +97,8 @@ bool VAD::vadDetect() {
                     "Speech:" + (speechDetected ? "6000000000" : "0");
     
     // Print the concatenated string
-    Serial.println(output);
+    //Serial.println(output);
+    if(speechDetected)Serial.println(speechDetected);
 
     return speechDetected;
 }
@@ -149,54 +149,59 @@ unsigned long bonusTime = 2000; // Bonus time in milliseconds
 unsigned long startTime = 0;
 bool recording = false;
 bool bonusStarted = false;
+bool listening = false; // New flag to manage listening state
 
 void setup() {
     Serial.begin(115200);
     myVad.i2sInit();
 }
 
-
 void loop() {
- // myVad.vadDetect();
-  if(Serial.available()>0){
-    if (recording) {
-        unsigned long currentTime = millis();
-        
-        if (bonusStarted && (currentTime - startTime >= bonusTime)) {
-            // Stop recording if bonus time has expired
-           // Serial.println("Stop Listening - Bonus Time Expired");
-            recording = false;
+    if (Serial.available() > 0) {
+        String cmd = Serial.readString();
+        if (cmd.compareTo("start") == 0) {
+            listening = true;
+            Serial.println("Start Listening Command Received");
+            startTime = millis();  // Start the timing for recording
+            recording = true;     // Set recording flag
             bonusStarted = false; // Reset bonus flag
-            startTime = 0;        // Reset start time
-        } else if (!bonusStarted && (currentTime - startTime >= maxTime)) {
-            // Stop recording if maximum time has expired
-            //Serial.println("Stop Listening - Max Time Expired");
-            recording = false;
-            bonusStarted = false; // Reset bonus flag
-            startTime = 0;        // Reset start time
-        } else {
-            // Check if speech is still detected
-            if (!myVad.vadDetect()) {
-                // If no speech is detected, start bonus time if not already started
-                if (!bonusStarted) {
-                    bonusStarted = true;
-                    startTime = millis();
-                    //Serial.println("Bonus Time Started");
-                }
-            } else {
-                // If speech is detected, reset bonus time
-                bonusStarted = false;
-                startTime = millis();
-            }
-        }
-    } else {
-        // Start recording if speech is detected
-        if (myVad.vadDetect()) {
-            recording = true;
-            bonusStarted = false;
-            startTime = millis();
-            //Serial.println("Start Listening");
         }
     }
-  }
+
+    if (listening) {
+        unsigned long currentTime = millis();
+        
+        if (recording) {
+            if (myVad.vadDetect()) {
+                bonusStarted = false;
+                startTime = millis(); // Reset start time when speech is detected
+                Serial.println("yey");
+            } else {
+                if (!bonusStarted) {
+                    if (currentTime - startTime >= maxTime) {
+                        // Stop recording if maximum time has expired
+                        Serial.println("Stop Listening - Max Time Expired");
+                        recording = false;
+                        listening = false; // Stop listening
+                        startTime = 0;     // Reset start time
+                    } else if (currentTime - startTime >= bonusTime) {
+                        // Stop recording if bonus time has expired
+                        Serial.println("Stop Listening - Bonus Time Expired");
+                        recording = false;
+                        bonusStarted = false; // Reset bonus flag
+                        startTime = 0;        // Reset start time
+                    }
+                } else {
+                    if (currentTime - startTime >= bonusTime) {
+                        // Stop recording if bonus time has expired
+                        Serial.println("Stop Listening - Bonus Time Expired");
+                        recording = false;
+                        bonusStarted = false; // Reset bonus flag
+                        startTime = 0;        // Reset start time
+                    }
+                }
+            }
+        }
+    }
 }
+
