@@ -38,14 +38,17 @@ String GeminiESP32::askQuestion(String question) {
                     filteredAnswer += ' ';
                 }
             }
+            https.end();
             return filteredAnswer;
         } else {
-            Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
+          https.end();
+          Serial.printf("[HTTPS] GET... failed, error: %s\n", https.errorToString(httpCode).c_str());
             return "Error";
         }
         https.end();
     } else {
-        Serial.printf("[HTTPS] Unable to connect\n");
-        return "Error";
+      https.end();
+      Serial.printf("[HTTPS] Unable to connect\n");
+      return "Error";
     }
 }

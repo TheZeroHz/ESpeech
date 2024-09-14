@@ -1,5 +1,6 @@
 #include "ESpeech.h"
-#define SERVER_URL "http://192.168.0.106:8888/uploadAudio" // Change the IP Address according To Your Server's config
+#include "VADCoreESP32.h"
+#define SERVER_URL "http://192.168.0.100:8888/uploadAudio" // Change the IP Address according To Your Server's config
 #define I2S_WS 16
 #define I2S_SD 7
 #define I2S_SCK 15
@@ -22,25 +23,13 @@ void ESpeech::begin() {
 
 
 void ESpeech::recordAudio() {
-
-    Serial.printf("recordAudio -1");
-    delay(50);
     i2sInit(); 
-    delay(50);
-    Serial.printf("recordAudio 0"); 
-    i2s_zero_dma_buffer(I2S_PORT); //clear DMA Buffers 
-  delay(50);
-    Serial.printf("recordAudio 1");
-    FFATInit();                     // Reinitialize FFat for new file
-    delay(500);                     // Add a small delay
-    Serial.printf("recordAudio 2");
-                     // Reinitialize I2S
-    Serial.printf("recordAudio 3");
-    i2s_adc();                      // Perform recording
-    Serial.printf("recordAudio 4");
     i2s_zero_dma_buffer(I2S_PORT);
-    delay(50);
+    FFATInit();
+    i2s_adc();
+    i2s_zero_dma_buffer(I2S_PORT);
 }
+
 
 String ESpeech::getTranscription() {
   String response="";
@@ -83,9 +72,7 @@ void ESpeech::FFATInit() {
         Serial.println("FFAT initialization failed!");
         while (1) yield();
     }
-    Serial.printf("ffat init 1");
     listFFAT();
-    Serial.printf("ffat init 2");
 }
 
 
@@ -121,43 +108,6 @@ void ESpeech::i2sDeInit(){
   i2s_zero_dma_buffer(I2S_PORT); //clear DMA Buffers  
   i2s_driver_uninstall(I2S_PORT); //stop & destroy i2s driver
   }
-
-void ESpeech::i2s_adc() {
-    int i2s_read_len = I2S_READ_LEN;
-    int flash_wr_size = 0;
-    size_t bytes_read;
-
-    char *i2s_read_buff = (char *)calloc(i2s_read_len, sizeof(char));
-    uint8_t *flash_write_buff = (uint8_t *)calloc(i2s_read_len, sizeof(char));
-    FFat.remove(filename);
-    file = FFat.open(filename, FILE_WRITE);
-    if (!file) {
-        Serial.println("File is not available!");
-    }
-
-    byte header[headerSize];
-    wavHeader(header, FLASH_RECORD_SIZE);
-    file.write(header, headerSize);
-    Serial.println(" *** Recording Start *** ");
-    while (flash_wr_size < FLASH_RECORD_SIZE) {
-        i2s_read(I2S_PORT, (void *)i2s_read_buff, i2s_read_len, &bytes_read, portMAX_DELAY);
-        i2s_adc_data_scale(flash_write_buff, (uint8_t *)i2s_read_buff, i2s_read_len);
-        file.write((const byte *)flash_write_buff, i2s_read_len);
-        flash_wr_size += i2s_read_len;
-        ets_printf("Sound recording %u%%\n", flash_wr_size * 100 / FLASH_RECORD_SIZE);
-        ets_printf("Never Used Stack Size: %u\n", uxTaskGetStackHighWaterMark(NULL));
-    }
-    file.close();
-    if(i2s_read_buff!=NULL){
-    free(i2s_read_buff);
-    i2s_read_buff = NULL;
-    }
-    if(flash_write_buff!=NULL){
-    free(flash_write_buff);
-    flash_write_buff = NULL;}
-    listFFAT();
-}
-
 void ESpeech::i2s_adc_data_scale(uint8_t *d_buff, uint8_t *s_buff, uint32_t len) {
     uint32_t j = 0;
     uint32_t dac_value = 0;
@@ -167,62 +117,122 @@ void ESpeech::i2s_adc_data_scale(uint8_t *d_buff, uint8_t *s_buff, uint32_t len)
         d_buff[j++] = dac_value * 256 / 2048;
     }
 }
+void ESpeech::i2s_adc() {
+    size_t bytes_read;
+    char *i2s_read_buff = (char *)calloc(I2S_READ_LEN, sizeof(char));
+    FFat.remove(filename);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
+    file = FFat.open(filename, FILE_WRITE);
+    if (!file) {
+        Serial.println("File is not available!");
+        free(i2s_read_buff);
+        return;
+    }
+    // Write a placeholder WAV header
+    byte header[headerSize] = {0};
+    wavHeader(header, 0); // Write initial header with zero data size
+    file.write(header, headerSize);
+    Serial.println(" *** Recording Start *** ");
+
+    // Initialize VAD object
+    VADCoreESP32 vad;
+    vad.i2sInit(I2S_PORT, I2S_SCK, I2S_WS, I2S_SD);
+    vad.setCore(0); // Uncomment if your board has 2 cores
+    vad.setPriority(10); // Uncomment if your board has 2 cores
+    vad.start(); // Start VAD task
+    
+    size_t recordedSize = 0;
+    while (true) {
+        i2s_read(I2S_PORT, (void *)i2s_read_buff, I2S_READ_LEN, &bytes_read, portMAX_DELAY);
+        if (vad.getState() == VAD_VOICE) {
+            file.write((const byte *)i2s_read_buff, I2S_READ_LEN);
+            recordedSize += I2S_READ_LEN;
+            ets_printf("Sound recording\n");
+        } else if (vad.getState() == VAD_SILENCE) {
+            ets_printf("Recording stop\n");
+            break;
+        }
+    }
+    
+    // Update WAV header with actual recorded size
+    file.seek(4); // Move to file size field
+    uint32_t fileSize = recordedSize + 36; // File size = dataSize + 36
+    file.write((byte*)&fileSize, sizeof(fileSize));
+    file.seek(40); // Move to data size field
+    file.write((byte*)&recordedSize, sizeof(recordedSize));
+
+    file.close();
+    free(i2s_read_buff);
+    listFFAT();
+}
+
+
+
 
 void ESpeech::wavHeader(byte *header, int wavSize) {
-    header[0] = 'R';
+    // RIFF Chunk Descriptor
+    header[0] = 'R';  // ChunkID
     header[1] = 'I';
     header[2] = 'F';
     header[3] = 'F';
-    unsigned int fileSize = wavSize + headerSize - 8;
-    header[4] = (byte)(fileSize & 0xFF);
+    unsigned int fileSize = wavSize + 36; // File size = dataSize + 36
+    header[4] = (byte)(fileSize & 0xFF);        // ChunkSize
     header[5] = (byte)((fileSize >> 8) & 0xFF);
     header[6] = (byte)((fileSize >> 16) & 0xFF);
     header[7] = (byte)((fileSize >> 24) & 0xFF);
-    header[8] = 'W';
+    
+    header[8] = 'W';  // Format
     header[9] = 'A';
     header[10] = 'V';
     header[11] = 'E';
-    header[12] = 'f';
+    
+    // fmt Subchunk
+    header[12] = 'f';  // Subchunk1ID
     header[13] = 'm';
     header[14] = 't';
     header[15] = ' ';
-    header[16] = 0x10;
+    header[16] = 0x10; // Subchunk1Size (16 for PCM)
     header[17] = 0x00;
     header[18] = 0x00;
     header[19] = 0x00;
-    header[20] = 0x01;
+    header[20] = 0x01; // AudioFormat (1 for PCM)
     header[21] = 0x00;
-    header[22] = 0x01;
+    header[22] = 0x01; // NumChannels (1 for mono)
     header[23] = 0x00;
-    header[24] = 0x80;
-    header[25] = 0x3E;
-    header[26] = 0x00;
-    header[27] = 0x00;
-    header[28] = 0x00;
-    header[29] = 0x7D;
-    header[30] = 0x01;
-    header[31] = 0x00;
-    header[32] = 0x02;
+    header[24] = (byte)(I2S_SAMPLE_RATE & 0xFF); // SampleRate (16000 Hz)
+    header[25] = (byte)((I2S_SAMPLE_RATE >> 8) & 0xFF);
+    header[26] = (byte)((I2S_SAMPLE_RATE >> 16) & 0xFF);
+    header[27] = (byte)((I2S_SAMPLE_RATE >> 24) & 0xFF);
+    uint32_t byteRate = I2S_SAMPLE_RATE * 1 * (I2S_SAMPLE_BITS / 8);
+    header[28] = (byte)(byteRate & 0xFF); // ByteRate
+    header[29] = (byte)((byteRate >> 8) & 0xFF);
+    header[30] = (byte)((byteRate >> 16) & 0xFF);
+    header[31] = (byte)((byteRate >> 24) & 0xFF);
+    header[32] = (byte)(1 * (I2S_SAMPLE_BITS / 8)); // BlockAlign
     header[33] = 0x00;
-    header[34] = 0x10;
+    header[34] = I2S_SAMPLE_BITS; // BitsPerSample
     header[35] = 0x00;
-    header[36] = 'd';
+    
+    // data Subchunk
+    header[36] = 'd';  // Subchunk2ID
     header[37] = 'a';
     header[38] = 't';
     header[39] = 'a';
-    header[40] = (byte)(wavSize & 0xFF);
+    header[40] = (byte)(wavSize & 0xFF);        // Subchunk2Size (dataSize)
     header[41] = (byte)((wavSize >> 8) & 0xFF);
     header[42] = (byte)((wavSize >> 16) & 0xFF);
     header[43] = (byte)((wavSize >> 24) & 0xFF);
 }
 
 
+
 void ESpeech::listFFAT() {
+  /*
     Serial.println(F("\r\nListing FFAT files:"));
     static const char line[] PROGMEM = "=================================================";
 
     Serial.println(FPSTR(line));
-    Serial.println(F("  File name                              Size"));
+    Serial.println(F("  File name                        Size"));
     Serial.println(FPSTR(line));
 
     fs::File root = FFat.open("/");
@@ -239,26 +249,32 @@ void ESpeech::listFFAT() {
     while (file) {
         if (file.isDirectory()) {
             Serial.print("DIR : ");
-            String fileName = file.name();
-            Serial.print(fileName);
+            Serial.println(file.name());
         } else {
-            String fileName = file.name();
-            Serial.print("  " + fileName);
-            int spaces = 33 - fileName.length();
-            if (spaces < 1) spaces = 1;
-            while (spaces--) Serial.print(" ");
-            String fileSize = (String)file.size();
-            spaces = 10 - fileSize.length();
-            if (spaces < 1) spaces = 1;
-            while (spaces--) Serial.print(" ");
-            Serial.println(fileSize + " bytes");
+            // Print file details
+            const char* fileName = file.name();
+            Serial.print("  ");
+            Serial.print(fileName);
+
+            // Adjust spacing
+            int nameLength = strlen(fileName);
+            int spaces = 33 - nameLength;
+            if (spaces > 0) {
+                Serial.print(String(' ', spaces));
+            }
+
+            // Print file size
+            unsigned long fileSize = file.size();
+            Serial.print(fileSize);
+            Serial.println(" bytes");
         }
+        file.close();  // Always close the file after processing
         file = root.openNextFile();
     }
     Serial.println(FPSTR(line));
-    Serial.println();
-    delay(1000);
+    Serial.println();*/
 }
+
 
 
 void ESpeech::wifiConnect() {
