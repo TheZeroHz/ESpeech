@@ -1,4 +1,4 @@
-# ESpeech [ESP32 Voice Recognition and Text Generation System]
+# ESP32 Voice Recognition and Text Generation System
 
 This project implements a voice recognition system using an ESP32. It detects the wake word "MARVIN", records audio, and transcribes it using a server. Additionally, the system can ask questions to the Gemini model for content generation via Google’s Generative Language API.
 
