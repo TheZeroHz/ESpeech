@@ -1,17 +1,10 @@
 #include "GeminiESP32.h"
 
-GeminiESP32::GeminiESP32(const char* ssid, const char* password, const char* token, int maxTokens)
-    : ssid(ssid), password(password), token(token), maxTokens(maxTokens) {}
+GeminiESP32::GeminiESP32(const char* token)
+    :token(token){}
 
-void GeminiESP32::begin() {
-    connectWiFi();
-}
-
-void GeminiESP32::connectWiFi() {
-}
-
-String GeminiESP32::askQuestion(String question) {
-    Serial.println("Delivering ques to GEMINI:"+question);
+String GeminiESP32::askQuestion(String question,int Max_Token) {
+    maxTokens=Max_Token;
     String res = String("\"") + question + String(" [tell me about this in shortest token possible with important detail info only]\"");
     HTTPClient https;
     String url = String("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=") + token;
@@ -48,7 +41,7 @@ String GeminiESP32::askQuestion(String question) {
         https.end();
     } else {
       https.end();
-      Serial.printf("[HTTPS] Unable to connect\n");
+      Serial.printf("[HTTPS] Unable to connect GEMINI\n");
       return "Error";
     }
 }

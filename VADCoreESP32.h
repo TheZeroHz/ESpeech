@@ -16,12 +16,13 @@
 class VADCoreESP32 {
 public:
     VADCoreESP32() : coreId(xPortGetCoreID()), priority(1), vadTaskHandle(NULL) {}
-    void i2sInit(int i2sPort, int i2sBckPin, int i2sWsPin, int i2sDataPin);
+    void i2sInit(i2s_port_t i2sPort, int i2sBckPin, int i2sWsPin, int i2sDataPin);
     void start();
     bool getState();
     void setCore(int coreId);  // Set core for task
     void setPriority(UBaseType_t priority); // Set priority for task
 private:
+    i2s_port_t i2s_Port;
     int coreId; // Core ID to pin the task
     UBaseType_t priority; // Priority of the task
     float previousEnergy = 0;

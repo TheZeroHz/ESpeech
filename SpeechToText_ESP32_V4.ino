@@ -3,10 +3,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2s.h"
-#include <Marvin_WakeWord_inferencing.h>
+#include <Marvin_WakeWord_inferencing.h> //Dependency .....
 #include "ESpeech.h"
 #include "GeminiESP32.h"
-
+#include "CoreEngine.h"
 
 /** Audio buffers, pointers and selectors */
 typedef struct {
@@ -37,26 +37,31 @@ static bool detected();
 
 const char *ssid = "Rakib";                                // Your SSID
 const char *password = "rakib@2024";                       // Your PASS
-#define serverUrl "http://192.168.0.100:8888/uploadAudio"  // Change the IP Address according To Your Server's config
+#define serverUrl "http://192.168.0.106:8888/uploadAudio"  // Change the IP Address according To Your Server's config
+#define GEMINI_API_TOKEN "AIzaSyDPNTBZEBFmlZBIStC-ExslDAMQPudkuOE"
+#define I2S_WS 16
+#define I2S_SD 7
+#define I2S_SCK 15
 
-ESpeech STT(ssid, password, serverUrl);
-GeminiESP32 assistant("", "", "AIzaSyDPNTBZEBFmlZBIStC-ExslDAMQPudkuOE");
+
+
+ESpeech STT(I2S_NUM_1,I2S_SCK,I2S_WS,I2S_SD);
+GeminiESP32 assistant(GEMINI_API_TOKEN);
 
 void setup() {
   Serial.begin(115200);
-  esp_log_level_set("I2S", ESP_LOG_DEBUG);
-  delay(500);
+  Serial.print("Connecting to WiFi");
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+        delay(1000);
+        Serial.print(".");
+    }
+  Serial.println("\nConnected to WiFi");
   Serial.printf("Free Heap at first: %d\n", ESP.getFreeHeap());
-  //audioInit();
-  Serial.printf("Free Heap after i2s amplifier took place: %d\n", ESP.getFreeHeap());
-  delay(500);
   initwakeword();
   Serial.printf("Free Heap after i2s microphone wakeword took place: %d\n", ESP.getFreeHeap());
-  delay(500);
-  STT.begin();
+  STT.begin(serverUrl);
   Serial.printf("Free Heap after i2s microphone STT took place: %d\n", ESP.getFreeHeap());
-  delay(5000);
-
 }
 
 void loop() {
@@ -72,8 +77,14 @@ void loop() {
     Serial.printf("Free Heap after stt record: %d\n", ESP.getFreeHeap());
     String intent=STT.getTranscription();
     Serial.println(intent);
+    CoreEngine core;
+    core.addCommasToCommand(intent);
+    core.processCommand(intent);
+    if(core.getCloudCmd().isEmpty()){
     String answer=assistant.askQuestion(intent);
-    Serial.println(answer);
+    Serial.println("Answer from GEMINI:=>"+answer);
+    }
+    else Serial.println("Pass to the Cloud:=>"+core.getCloudCmd());
     //audioConnecttoSpeech(answer.c_str(), "en");
     Serial.printf("Free Heap after stt transcript: %d\n", ESP.getFreeHeap());
     ei_sleep(500);
@@ -183,8 +194,8 @@ static int i2s_init(uint32_t sampling_rate) {
     .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
     .communication_format = I2S_COMM_FORMAT_I2S,
     .intr_alloc_flags = 0,
-    .dma_buf_count = 8,
-    .dma_buf_len = 512,
+    .dma_buf_count =8,
+    .dma_buf_len = 1024,
     .use_apll = false,
     .tx_desc_auto_clear = false,
     .fixed_mclk = -1,

@@ -17,7 +17,8 @@ void VADCoreESP32::apply_gain(int16_t *data, size_t length) {
     }
 }
 
-void VADCoreESP32::i2sInit(int i2sPort, int i2sBckPin, int i2sWsPin, int i2sDataPin) {
+void VADCoreESP32::i2sInit(i2s_port_t i2sPort, int i2sBckPin, int i2sWsPin, int i2sDataPin) {
+    i2s_Port=i2sPort;
     i2s_config_t i2s_config = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
         .sample_rate = VAD_SAMPLE_RATE,
@@ -25,14 +26,14 @@ void VADCoreESP32::i2sInit(int i2sPort, int i2sBckPin, int i2sWsPin, int i2sData
         .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
         .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-        .dma_buf_count = 8,
-        .dma_buf_len = 512,
+        .dma_buf_count = 1,
+        .dma_buf_len = 256,
         .use_apll = false,
         .tx_desc_auto_clear = true,
         .fixed_mclk = 0
     };
 
-    i2s_driver_install(i2s_port_t(i2sPort), &i2s_config, 0, NULL);
+    i2s_driver_install(i2s_Port, &i2s_config, 0, NULL);
 
     const i2s_pin_config_t pin_config = {
         .bck_io_num = i2sBckPin,
@@ -41,13 +42,13 @@ void VADCoreESP32::i2sInit(int i2sPort, int i2sBckPin, int i2sWsPin, int i2sData
         .data_in_num = i2sDataPin
     };
 
-    i2s_set_pin(i2s_port_t(i2sPort), &pin_config);
+    i2s_set_pin(i2s_Port, &pin_config);
 }
 
 bool VADCoreESP32::vadDetect() {
     // Read audio data from I2S
     size_t bytesRead;
-    i2s_read(I2S_NUM_1, (char *)i2sBuffer, FFT_SIZE * sizeof(int16_t), &bytesRead, portMAX_DELAY);
+    i2s_read(i2s_Port, (char *)i2sBuffer, FFT_SIZE * sizeof(int16_t), &bytesRead, portMAX_DELAY);
     apply_gain(i2sBuffer, FFT_SIZE / sizeof(int16_t));
 
     // Convert I2S buffer to double array for FFT processing
@@ -154,6 +155,7 @@ void VADCoreESP32::vadTaskWrapper(void *pvParameters) {
     while (true) {
         if (instance->recording) {
             instance->vadTask();
+            vTaskDelay(50 / portTICK_PERIOD_MS);
         }
         else{
         Serial.println("Deleting VadTask Heap:"+String(ESP.getFreeHeap()));
