@@ -1,0 +1,19 @@
+################################################
+###############Real World Bench Mark############
+################################################
+
+
+_____________QUIET ENVIRONMENT______________
+
+	noise [500]  492TN  8FP
+	marvin[100]   80TP  20FN
+
+TOTAL=600 SAMPLE 
+Avg Time Taken=316 ms
+Memory Usage=13kb
+Accuracy=(492+80)/(500+100)=95.333%
+Precision=80/(80+8)=90.9%
+Recall=80/(80+20)=80%
+f1= 2*90.9*80/(90.9+80)=85.10%
+False Wake Word Rate= 8/(8+492)=1.6%
+Missed Wake Word Rate= 20/(20+80)=20%
