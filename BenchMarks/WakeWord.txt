@@ -40,7 +40,7 @@ Noise [500]: 495 TN, 5 FP
 Marvin [100]: 85 TP, 15 FN
 
 TOTAL = 600 SAMPLE
-Avg Time Taken: 320 ms
+Avg Time Taken: 316 ms
 Memory Usage: 13 KB
 Accuracy: (495 + 85) / (500 + 100) = 96.67%
 Precision: 85 / (85 + 5) = 94.44%
@@ -55,7 +55,7 @@ Noise [500]: 485 TN, 15 FP
 Marvin [100]: 80 TP, 20 FN
 
 TOTAL = 600 SAMPLE
-Avg Time Taken: 320 ms
+Avg Time Taken: 316 ms
 Memory Usage: 13 KB
 Accuracy: (485 + 80) / (500 + 100) = 94.17%
 Precision: 80 / (80 + 15) = 84.21%
