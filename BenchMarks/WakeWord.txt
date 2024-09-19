@@ -27,11 +27,9 @@ _____________NOISY ENVIRONMENT at 0.9 threshold______________
 TOTAL = 600 SAMPLE 
 Avg Time Taken = 316 ms
 Memory Usage = 13 KB
-
-Results:
-    Accuracy = (480 + 75) / (500 + 100) = 92.5%
-    Precision = 75 / (75 + 20) = 78.95%
-    Recall = 75 / (75 + 25) = 75%
-    F1 Score = 2 * 78.95 * 75 / (78.95 + 75) = 76.92%
-    False Wake Word Rate = 20 / (20 + 480) = 4%
-    Missed Wake Word Rate = 25 / (25 + 75) = 25%
+Accuracy = (480 + 75) / (500 + 100) = 92.5%
+Precision = 75 / (75 + 20) = 78.95%
+Recall = 75 / (75 + 25) = 75%
+F1 Score = 2 * 78.95 * 75 / (78.95 + 75) = 76.92%
+False Wake Word Rate = 20 / (20 + 480) = 4%
+Missed Wake Word Rate = 25 / (25 + 75) = 25%
