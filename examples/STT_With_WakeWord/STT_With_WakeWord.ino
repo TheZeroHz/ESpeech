@@ -12,7 +12,6 @@ typedef struct {
   uint32_t buf_count;
   uint32_t n_samples;
 } inference_t;
-
  inference_t inference;
  const uint32_t sample_buffer_size = 2048;
  signed short sampleBuffer[sample_buffer_size];
@@ -29,13 +28,10 @@ typedef struct {
  int i2s_deinit(void);
  bool WakeWord_detected();
 #endif
-
-
 ESpeech STT(I2S_NUM_1,I2S_SCK,I2S_WS,I2S_SD);
-const char *ssid = "BRIC_301/B";                                // Your SSID
-const char *password = "research@301";                       // Your PASS
+const char *ssid = "Rakib";                                // Your SSID
+const char *password = "rakib@2024";                       // Your PASS
 #define serverUrl "https://espeechserver-iukg.onrender.com/uploadAudio"  // Change the IP Address according To Your Server's config
-
 void setup() {
   Serial.begin(115200);
   Serial.print("Connecting to WiFi");
@@ -48,57 +44,38 @@ void setup() {
   STT.serverURL(serverUrl);
   WakeWord_init();
 }
-
 void loop() {
-if (WakeWord_detected()) {
+  if (WakeWord_detected()) {
+    Serial.println("Wake word detected! Activating AI Assistant...");
+
+    // Clean up wake word resources
     if (inference.buffer != NULL) {
-    free(inference.buffer);  // Free the allocated memory previously allocated in rtos task
-    inference.buffer = NULL; // Set the pointer to NULL to avoid dangling pointers
-    record_status = false;
+      free(inference.buffer);  
+      inference.buffer = NULL; 
+      record_status = false;
     }
-    STT.recordAudio(); // This records the voice with vad
-    String intent = STT.getTranscription(); // this returns the speech to text as string
-    Serial.println(intent); // just showing the intent
-    ei_sleep(500);
+
+    // Properly deinitialize I2S before ESpeech uses it
+    i2s_deinit();
+    delay(100); // Give time for cleanup
+
+    // Record audio using ESpeech
+    STT.recordAudio(); 
+    String intent = STT.getTranscription(); 
+    Serial.println("Transcription: " + intent); 
+
+    // Give some time before reinitializing wake word detection
+    delay(500);
+
+    // Reinitialize wake word detection
     if (microphone_inference_start(EI_CLASSIFIER_RAW_SAMPLE_COUNT) == false) {
-    ei_printf("ERR: Could not allocate audio buffer (size %d), this could be due to the window length of your model\r\n", EI_CLASSIFIER_RAW_SAMPLE_COUNT);
-     }
+      Serial.println("ERR: Could not allocate audio buffer for wake word detection");
+    }
+  }
 }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #ifdef USE_WAKEWORD
  void WakeWord_init() {
-  ei_printf("WakeWord Inferencing Demo");
+  ei_printf("WakeWord Inferencing Demo\n");
   ei_printf("Inferencing settings:\n");
   ei_printf("\tInterval: ");
   ei_printf_float((float)EI_CLASSIFIER_INTERVAL_MS);
@@ -113,8 +90,6 @@ if (WakeWord_detected()) {
     return;
   }
 }
-
-
  void audio_inference_callback(uint32_t n_bytes) {
   for (int i = 0; i < n_bytes >> 1; i++) {
     inference.buffer[inference.buf_count++] = sampleBuffer[i];
@@ -124,112 +99,128 @@ if (WakeWord_detected()) {
     }
   }
 }
-
-
  void capture_samples(void *arg) {
   const int32_t i2s_bytes_to_read = (uint32_t)arg;
   size_t bytes_read = i2s_bytes_to_read;
   while (record_status) {
-    i2s_read((i2s_port_t)1, (void *)sampleBuffer, i2s_bytes_to_read, &bytes_read, 100);
-    if (bytes_read <= 0) ei_printf("Error in I2S read : %d", bytes_read);
-    else {
-      if (bytes_read < i2s_bytes_to_read) ei_printf("Partial I2S read");
+    esp_err_t result = i2s_read((i2s_port_t)1, (void *)sampleBuffer, i2s_bytes_to_read, &bytes_read, 100);
+    if (result != ESP_OK) {
+      ei_printf("Error in I2S read : %s\n", esp_err_to_name(result));
+      break;
+    }
+    if (bytes_read <= 0) {
+      ei_printf("Error in I2S read : %d\n", bytes_read);
+    } else {
+      if (bytes_read < i2s_bytes_to_read) ei_printf("Partial I2S read\n");
       // scale the data (otherwise the sound is too quiet)
-      for (int x = 0; x < i2s_bytes_to_read / 2; x++) sampleBuffer[x] = (int16_t)(sampleBuffer[x]) * 8;
-      if (record_status) audio_inference_callback(i2s_bytes_to_read);
-      else break;
+      for (int x = 0; x < i2s_bytes_to_read / 2; x++) {
+        sampleBuffer[x] = (int16_t)(sampleBuffer[x]) * 8;
+      }
+      if (record_status) {
+        audio_inference_callback(i2s_bytes_to_read);
+      } else {
+        break;
+      }
     }
   }
   vTaskDelete(NULL);
 }
-
-
  bool microphone_inference_start(uint32_t n_samples) {
   inference.buffer = (int16_t *)malloc(n_samples * sizeof(int16_t));
   if (inference.buffer == NULL) return false;
   inference.buf_count = 0;
   inference.n_samples = n_samples;
   inference.buf_ready = 0;
-  if (i2s_init(EI_CLASSIFIER_FREQUENCY)) ei_printf("Failed to start I2S!");
+
+  if (i2s_init(EI_CLASSIFIER_FREQUENCY) != ESP_OK) {
+    ei_printf("Failed to start I2S!\n");
+    return false;
+  }
+
   ei_sleep(100);
   record_status = true;
   xTaskCreate(capture_samples, "CaptureSamples", 1024 * 32, (void *)sample_buffer_size, 10, NULL);
   return true;
 }
-
-
  bool microphone_inference_record(void) {
   bool ret = true;
   while (inference.buf_ready == 0) delay(10);
   inference.buf_ready = 0;
   return ret;
 }
-
  int microphone_audio_signal_get_data(size_t offset, size_t length, float *out_ptr) {
   numpy::int16_to_float(&inference.buffer[offset], out_ptr, length);
   return 0;
 }
-
-
  void microphone_inference_end(void) {
   i2s_deinit();
-  ei_free(inference.buffer);
+  if (inference.buffer) {
+    ei_free(inference.buffer);
+    inference.buffer = NULL;
+  }
 }
-
  int i2s_deinit(void) {
+  record_status = false; // Stop any ongoing recording
+  vTaskDelay(100 / portTICK_PERIOD_MS); // Give time for tasks to stop
   i2s_zero_dma_buffer((i2s_port_t)1);
-  i2s_driver_uninstall((i2s_port_t)1);  //stop & destroy i2s driver
-  return 0;
+  esp_err_t result = i2s_driver_uninstall((i2s_port_t)1);
+  if (result != ESP_OK) {
+    ei_printf("Error uninstalling I2S driver: %s\n", esp_err_to_name(result));
+  }
+  return result;
 }
-
  int i2s_init(uint32_t sampling_rate) {
+  // First ensure I2S is properly deinitialized
+  //i2s_driver_uninstall((i2s_port_t)1);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
+
   // Start listening for audio: MONO @ 8/16KHz
   i2s_config_t i2s_config = {
-    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX | I2S_MODE_TX),
+    .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
     .sample_rate = sampling_rate,
     .bits_per_sample = (i2s_bits_per_sample_t)16,
     .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
     .communication_format = I2S_COMM_FORMAT_I2S,
-    .intr_alloc_flags = 0,
-    .dma_buf_count =8,
+    .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
+    .dma_buf_count = 8, // Fixed: Valid range for wake word detection
     .dma_buf_len = 1024,
     .use_apll = false,
-    .tx_desc_auto_clear = false,
-    .fixed_mclk = -1,
+    .tx_desc_auto_clear = true,
+    .fixed_mclk = 0,
   };
+
   i2s_pin_config_t pin_config = {
     .bck_io_num = I2S_SCK,
     .ws_io_num = I2S_WS,
     .data_out_num = -1,
     .data_in_num = I2S_SD
   };
-  esp_err_t ret = 0;
 
-  ret = i2s_driver_install((i2s_port_t)1, &i2s_config, 0, NULL);
+  esp_err_t ret = i2s_driver_install((i2s_port_t)1, &i2s_config, 0, NULL);
   if (ret != ESP_OK) {
-    ei_printf("Error in i2s_driver_install");
+    ei_printf("Error in i2s_driver_install: %s\n", esp_err_to_name(ret));
+    return ret;
   }
-
   ret = i2s_set_pin((i2s_port_t)1, &pin_config);
   if (ret != ESP_OK) {
-    ei_printf("Error in i2s_set_pin");
+    ei_printf("Error in i2s_set_pin: %s\n", esp_err_to_name(ret));
+    return ret;
   }
-
+  vTaskDelay(100 / portTICK_PERIOD_MS); // Give time for tasks to stop
   ret = i2s_zero_dma_buffer((i2s_port_t)1);
   if (ret != ESP_OK) {
-    ei_printf("Error in initializing dma buffer with 0");
+    ei_printf("Error in initializing dma buffer with 0: %s\n", esp_err_to_name(ret));
+    return ret;
   }
-
-  return int(ret);
+  return ret;
 }
-
-
  bool WakeWord_detected() {
   bool m = microphone_inference_record();
   if (!m) {
     ei_printf("ERR: Failed to record wakeword audio...\n");
     return false;
   }
+
   signal_t signal;
   signal.total_length = EI_CLASSIFIER_RAW_SAMPLE_COUNT;
   signal.get_data = &microphone_audio_signal_get_data;
@@ -239,6 +230,7 @@ if (WakeWord_detected()) {
     ei_printf("ERR: Failed to run classifier (%d)\n", r);
     return false;
   }
+
   // print the predictions
   ei_printf("Predictions ");
   ei_printf("(DSP: %d ms., Classification: %d ms., Anomaly: %d ms.)",
@@ -249,10 +241,10 @@ if (WakeWord_detected()) {
     ei_printf_float(result.classification[ix].value);
     ei_printf("\n");
   }
+
+  // Check if "marvin" (index 1) has confidence > 0.9
   if (result.classification[1].value > 0.9) {
-    record_status=false;
-    i2s_zero_dma_buffer((i2s_port_t)1);
-    delay(50);
+    record_status = false;
     return true;
   }
   return false;

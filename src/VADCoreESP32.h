@@ -17,6 +17,7 @@ class VADCoreESP32 {
 public:
     VADCoreESP32() : coreId(xPortGetCoreID()), priority(1), vadTaskHandle(NULL) {}
     void i2sInit(i2s_port_t i2sPort, int i2sBckPin, int i2sWsPin, int i2sDataPin);
+    void setI2SPort(i2s_port_t port); // New method to set I2S port without initializing
     void start();
     bool getState();
     void setCore(int coreId);  // Set core for task
@@ -45,6 +46,7 @@ private:
     bool recording = false;
     bool bonusStarted = false;
     bool listening = false;
+    bool i2sInitialized = false; // Track if we initialized I2S ourselves
     TaskHandle_t vadTaskHandle = NULL;
     static void vadTaskWrapper(void *pvParameters);  // Wrapper for the FreeRTOS task
     void vadTask();

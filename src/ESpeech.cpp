@@ -15,12 +15,20 @@ void ESpeech::serverURL(const char* server_Url){
 }
 
 void ESpeech::recordAudio() {
+    // I2S should already be deinitialized by the main code before calling this
+    // Just wait a moment to ensure cleanup is complete
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    
     i2sInit(); 
     i2s_zero_dma_buffer(I2S_PORT);
     i2s_adc();
     i2s_zero_dma_buffer(I2S_PORT);
+     vTaskDelay(100 / portTICK_PERIOD_MS);
+    // Clean up I2S driver after recording - main code will reinitialize for wake word
+    i2s_driver_uninstall(I2S_PORT);
+     vTaskDelay(100 / portTICK_PERIOD_MS);
+    
 }
-
 
 String ESpeech::getTranscription() {
   String response="";
@@ -33,36 +41,37 @@ String ESpeech::getTranscription() {
   #endif
   if (!file) {
     Serial.println(F("FILE IS NOT AVAILABLE!"));
+    return "";
   }
   HTTPClient client;
-  client.begin(serverUrl); // python wsgi server address
+  client.begin(serverUrl);
   client.addHeader("Content-Type", "audio/wav");
   int httpResponseCode = client.sendRequest("POST", &file, file.size());
   Serial.print(F("httpResponseCode: "));
   Serial.println(httpResponseCode);
   if (httpResponseCode == 200) {
-     stt= client.getString();
-    const size_t capacity = JSON_OBJECT_SIZE(1) + 50;
+     stt = client.getString();
+    const size_t capacity = JSON_OBJECT_SIZE(1) + 200;
     DynamicJsonDocument doc(capacity);
     DeserializationError error = deserializeJson(doc, stt);
-  if (error) {
-    Serial.print(F("deserializeJson() failed: "));
-    Serial.println(error.f_str());
-  }
-   response = doc["transcription"].as<String>();
+    if (error) {
+      Serial.print(F("deserializeJson() failed: "));
+      Serial.println(error.f_str());
+    } else {
+      response = doc["transcription"].as<String>();
+    }
   } else {
     Serial.println(F("Error in HTTP request"));
   }
   file.close();
   client.end();
-  Serial.print(F("Total Time Taken TTS:"));
+  Serial.print(F("Total Time Taken STT: "));
   Serial.println(millis()-t1);
   return response;
 }
 
 void ESpeech::StorageInit() {
   #if ESPEECH_USE_FFAT
-
     if (!FFat.begin(true)) {
         Serial.println(F("FFAT initialization failed!"));
     }
@@ -70,17 +79,15 @@ void ESpeech::StorageInit() {
         Serial.println(F("FFAT initialized successfully!"));
     }
   #endif
-#if ESPEECH_USE_SPIFFS 
-
+  #if ESPEECH_USE_SPIFFS 
     if (!SPIFFS.begin(true)) {
         Serial.println(F("SPIFFS initialization failed!"));
     }
     else{
-    Serial.println(F("SPIFFS initialized successfully!"));
+      Serial.println(F("SPIFFS initialized successfully!"));
     }
-#endif
+  #endif
 }
-
 
 void ESpeech::i2sInit() {
     i2s_config_t i2s_config = {
@@ -90,14 +97,18 @@ void ESpeech::i2sInit() {
         .channel_format = I2S_CHANNEL_FMT_ONLY_LEFT,
         .communication_format = i2s_comm_format_t(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
         .intr_alloc_flags = ESP_INTR_FLAG_LEVEL1,
-        .dma_buf_count = 8,
+        .dma_buf_count = 64, // Changed to 64 for ESpeech recording (valid range)
         .dma_buf_len = 1024,
         .use_apll = false,
         .tx_desc_auto_clear = true,
         .fixed_mclk = 0
     };
 
-    i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
+    esp_err_t result = i2s_driver_install(I2S_PORT, &i2s_config, 0, NULL);
+    if (result != ESP_OK) {
+        ets_printf("ESpeech I2S driver install failed: %s\n", esp_err_to_name(result));
+        return;
+    }
 
     const i2s_pin_config_t pin_config = {
         .bck_io_num = I2S_SCK,
@@ -106,9 +117,11 @@ void ESpeech::i2sInit() {
         .data_in_num = I2S_SD
     };
 
-    i2s_set_pin(I2S_PORT, &pin_config);
+    result = i2s_set_pin(I2S_PORT, &pin_config);
+    if (result != ESP_OK) {
+        ets_printf("ESpeech I2S set pin failed: %s\n", esp_err_to_name(result));
+    }
 }
-
 
 void ESpeech::varyGain(uint8_t * buf,uint32_t len, int16_t gain)
 {
@@ -127,10 +140,15 @@ void ESpeech::varyGain(uint8_t * buf,uint32_t len, int16_t gain)
         buf[i*2+1] = tempUS>>8;
     }
 }
+
 void ESpeech::i2s_adc() {
     size_t bytes_read;
     uint8_t *i2s_read_buff = (uint8_t *)calloc(I2S_READ_LEN, sizeof(uint8_t));
-    //uint8_t *i2s_read_buff2 = (uint8_t *)calloc(I2S_READ_LEN, sizeof(uint8_t));
+    if (i2s_read_buff == NULL) {
+        ets_printf("Failed to allocate I2S read buffer\n");
+        return;
+    }
+    
     #if ESPEECH_USE_FFAT
     FFat.remove(filename);
     #endif
@@ -138,59 +156,74 @@ void ESpeech::i2s_adc() {
     SPIFFS.remove(filename);
     #endif
     vTaskDelay(10 / portTICK_PERIOD_MS);
+    
     #if ESPEECH_USE_FFAT
     file = FFat.open(filename, FILE_WRITE);
     #endif
     #if ESPEECH_USE_SPIFFS 
     file = SPIFFS.open(filename, FILE_WRITE);
     #endif
+    
+    if (!file) {
+        ets_printf("Failed to open file for writing\n");
+        free(i2s_read_buff);
+        return;
+    }
+    
     // Write a placeholder WAV header
     byte header[headerSize] = {0};
-    wavHeader(header, 0); // Write initial header with zero data size
+    wavHeader(header, 0);
     file.write(header, headerSize);
-    // Initialize VAD object
+    
+    // Initialize VAD object - but don't initialize I2S again
     VADCoreESP32 vad;
-    vad.i2sInit(I2S_PORT, I2S_SCK, I2S_WS, I2S_SD);
-    vad.setCore(VAD_CORE); // Uncomment if your board has 2 cores
-    vad.setPriority(VAD_PRIORITY); // Uncomment if your board has 2 cores
+    vad.setCore(VAD_CORE);
+    vad.setPriority(VAD_PRIORITY);
     vad.setMaxTime(VAD_MAX_TIME);
     vad.setBonusTime(VAD_BONUS_TIME);
-    vad.start(); // Start VAD task
-    int16_t gain_factor=30;  //1-40 is preffereble if you are fetching low sound issue
+    
+    // Use the existing I2S configuration - don't call vad.i2sInit()
+    vad.setI2SPort(I2S_PORT); // We need to add this method to VAD
+    vad.start();
+    
     size_t recordedSize = 0;
-    ets_printf("[Listening ..");
-    unsigned long progressTimer=millis();
+    ets_printf("[Listening");
+    unsigned long progressTimer = millis();
+    
     while (true) {
-        i2s_read(I2S_PORT, (void *)i2s_read_buff, I2S_READ_LEN, &bytes_read, portMAX_DELAY);
-        varyGain(i2s_read_buff,I2S_READ_LEN,30);
-        //i2s_adc_data_scale(i2s_read_buff2,i2s_read_buff,I2S_READ_LEN,gain_factor);
-        file.write((const byte *)i2s_read_buff, I2S_READ_LEN);
-        recordedSize += I2S_READ_LEN;
-        if(millis()-progressTimer>1000){
+        esp_err_t result = i2s_read(I2S_PORT, (void *)i2s_read_buff, I2S_READ_LEN, &bytes_read, portMAX_DELAY);
+        if (result != ESP_OK) {
+            ets_printf("I2S read failed: %s\n", esp_err_to_name(result));
+            break;
+        }
+        
+        if (bytes_read > 0) {
+            varyGain(i2s_read_buff, I2S_READ_LEN, 30);
+            file.write((const byte *)i2s_read_buff, I2S_READ_LEN);
+            recordedSize += I2S_READ_LEN;
+        }
+        
+        if(millis() - progressTimer > 1000) {
            ets_printf(".");
-           progressTimer=millis(); 
-            }
+           progressTimer = millis(); 
+        }
         
         if (vad.getState() == VAD_SILENCE) {
-            ets_printf("]");
+            ets_printf("]\n");
             break;
         }
     }
     
     // Update WAV header with actual recorded size
-    file.seek(4); // Move to file size field
-    uint32_t fileSize = recordedSize + 36; // File size = dataSize + 36
+    file.seek(4);
+    uint32_t fileSize = recordedSize + 36;
     file.write((byte*)&fileSize, sizeof(fileSize));
-    file.seek(40); // Move to data size field
+    file.seek(40);
     file.write((byte*)&recordedSize, sizeof(recordedSize));
 
     file.close();
     free(i2s_read_buff);
-    //free(i2s_read_buff2);
 }
-
-
-
 
 void ESpeech::wavHeader(byte *header, int wavSize) {
     // RIFF Chunk Descriptor
@@ -246,3 +279,4 @@ void ESpeech::wavHeader(byte *header, int wavSize) {
     header[42] = (byte)((wavSize >> 16) & 0xFF);
     header[43] = (byte)((wavSize >> 24) & 0xFF);
 }
+
