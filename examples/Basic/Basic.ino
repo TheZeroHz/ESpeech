@@ -1,17 +1,11 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2s.h"
-#include "ESpeechUserConfig.h"
 #include <ESpeech.h>
-#define I2S_WS 16    // for esp32_s I2S_WS 25
-#define I2S_SD 7    // for esp32_s I2S_SD 33
-#define I2S_SCK 15    // for esp32_s I2S_SCK 32
-
 ESpeech STT(I2S_NUM_1,I2S_SCK,I2S_WS,I2S_SD);
-
-const char *ssid = "Your SSID";                                // Your SSID
-const char *password = "Your PASS";                       // Your PASS
-#define serverUrl "https://YOUR_SERVER_URL.onrender.com/uploadAudio"  // Change the IP Address according To Your Server's config
+const char *ssid = "BRIC_301/B";                                // Your SSID
+const char *password = "research@301";                       // Your PASS
+#define serverUrl "https://espeechserver-iukg.onrender.com/uploadAudio"  // Change the IP Address according To Your Server's config
 
 void setup() {
   Serial.begin(115200);
