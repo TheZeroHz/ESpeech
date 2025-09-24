@@ -1,10 +1,12 @@
 # ESP32 Free Speech To Text without any API Key
 
 This repository contains the code for an audio transcription service using Flask and the `speech_recognition` library. The service accepts audio files, transcribes the speech to text, and returns the transcription as a JSON response.
+# ESP-ARDUINO BOARD VERSION
+v 2.0.14
 # Server Repository
 The server code is available at [ESpeechServer](https://github.com/TheZeroHz/ESpeechServer).  
 You can deploy it on a local server or a cloud platform(Recommended), such as [Render](http://onrender.com/).
-
+M.A.R.V.I.N. Wakeword Library at [Marvin_WakeWord_inferencing](https://github.com/TheZeroHz/Marvin_WakeWord_inferencing).
 ## Basic Example tutorial video that supports all the esp32 boards
 https://www.canva.com/design/DAGkKUr6V58/pw6ovNUVmsN3kMa85Zlr7w/watch?utm_content=DAGkKUr6V58&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h054e4457dc
 ## Demo
