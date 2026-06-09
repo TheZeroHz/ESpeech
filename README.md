@@ -1,4 +1,4 @@
-# ESP32 Speech-to-Text (No API Key Required)
+# ESP32 Speech-To-Text (No API Key Required)
 
 Industrial-grade speech-to-text pipeline for ESP32. This repository provides:
 
