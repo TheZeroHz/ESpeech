@@ -1,10 +1,8 @@
 /**
  * TinyCFG + ESpeech Integration Example
  *
- * Full pipeline from the TinyCFG architecture diagram:
- *   Voice -> STT (ESpeech) -> Tokenizer -> TinyCFG Parser -> Task Tree -> Robot Actions
- *
- * Configure WiFi and server URL, then send "start" over Serial to record speech.
+ * Full pipeline:
+ *   Voice -> STT (ESpeech) -> TinyCFG Parser -> Task Tree -> CDA -> Robot Actions
  */
 
 #include "freertos/FreeRTOS.h"
@@ -20,25 +18,9 @@ const char* ssid = "YOUR_SSID";
 const char* password = "YOUR_PASSWORD";
 #define serverUrl "https://espeechserver-iukg.onrender.com/uploadAudio"
 
-void onRobotAction(uint8_t actionId, const char* arg, void* userData) {
-    (void)userData;
-    switch (actionId) {
-        case TCFG_ACT_LIGHT_ON:
-            Serial.printf("  -> LIGHT_ON(%s)\n", arg);
-            // digitalWrite(ROOM_LIGHT_PIN, HIGH);
-            break;
-        case TCFG_ACT_LIGHT_OFF:
-            Serial.printf("  -> LIGHT_OFF(%s)\n", arg);
-            break;
-        case TCFG_ACT_COME_HERE:
-            Serial.println("  -> COME_HERE()");
-            break;
-        case TCFG_ACT_STOP:
-            Serial.println("  -> STOP()");
-            break;
-        default:
-            break;
-    }
+void onRobotAction(uint8_t actionId, const char* arg, uint8_t domain, void*) {
+    Serial.printf("  -> [%s] %s(%s)\n",
+        TinyCFG::domainName(domain), TinyCFG::actionName(actionId), arg);
 }
 
 void setup() {
@@ -55,6 +37,7 @@ void setup() {
 
     STT.serverURL(serverUrl);
     parser.setFuzzyMatch(true);
+    parser.setPhoneticRecovery(true);
     parser.setErrorRecovery(true);
     parser.setActionHandler(onRobotAction);
 
@@ -65,8 +48,9 @@ void processCommand(const String& text) {
     Serial.printf("STT/Text: \"%s\"\n", text.c_str());
 
     if (parser.parse(text)) {
-        Serial.println("Task Tree:");
         parser.printTaskTree(Serial);
+        parser.printDependencyReport(Serial);
+        parser.printMetrics(Serial);
         Serial.println("Semantic Actions:");
         parser.executeActions();
     } else {
@@ -83,8 +67,7 @@ void loop() {
     if (cmd.equalsIgnoreCase("start")) {
         Serial.println("Recording...");
         STT.recordAudio();
-        String transcription = STT.getTranscription();
-        processCommand(transcription);
+        processCommand(STT.getTranscription());
     } else if (cmd.length() > 0) {
         processCommand(cmd);
     }

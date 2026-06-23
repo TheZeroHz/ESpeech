@@ -1,75 +1,130 @@
-# TinyCFG — Lightweight CFG Voice Command Parser
+# TinyCFG v2 — Conference-Grade Voice Command Parser
 
-TinyCFG is a deterministic, grammar-based parsing engine for ESpeech. It turns
-STT transcriptions into hierarchical task trees and executable robot actions —
-without cloud parsing or ML on the device.
+**TinyCFG** is a lightweight, deterministic Context-Free Grammar (CFG) framework for
+multi-intent voice command understanding on resource-constrained ESP32 robots.
+It integrates with ESpeech STT but operates **fully offline** during parsing.
+
+## Named Devices & Locations (v3 slots)
+
+TinyCFG v3 introduces **slot patterns** for real-world device naming:
+
+| Slot | Matches | Example |
+|------|---------|---------|
+| `{location}` | room, kitchen, bedroom, garage... | `kitchen fan` |
+| `{name}` | Any user label (unknown word) | `rakibs`, `john`, `sarahs` |
+| `{device}` | fan, light, door, curtain... | (in template) |
+
+### Example commands
+
+```
+turn on kitchen fan              → FAN_ON(kitchen_fan)
+turn on rakibs room fan          → FAN_ON(rakibs_room_fan)
+turn on john bedroom light       → LIGHT_ON(john_bedroom_light)
+unlock rakibs front door         → UNLOCK(rakibs_front_door)
+go to sarahs office              → NAV_GO(sarahs_office)
+check garage camera              → CAMERA_VIEW(garage)
+open bedroom curtain             → CURTAIN_OPEN(bedroom)
+```
+
+Names like `rakibs`, `john`, `sarahs` are captured automatically — no need to pre-register them in the grammar. Apostrophes are stripped (`rakib's` → `rakibs`).
+
+### Define slots in `.cfg`
+
+```ini
+[slots]
+location = room, bedroom, kitchen, living, garage, office
+device = fan, light, lamp, door, curtain
+
+[patterns]
+turn on {name} {location} fan => FAN_ON({name}_{location}_fan) @domain smarthome @resource fan
+turn on {location} fan        => FAN_ON({location}_fan)        @domain smarthome @resource fan
+```
+
+Recompile after editing:
+```bash
+python tools/tinycfg_compiler.py tinycfg/grammars/smart_world.cfg
+```
+
+## Novel Contributions (for paper)
+
+| Contribution | Description |
+|---|---|
+| **Pattern-Augmented LL(1)** | Dual offline representation: CFG composition rules + compiled terminal patterns |
+| **N-Intent Composition** | Formal operators: `and`, `then`, `after`, `before`, `if`, `until`, `while` |
+| **PER** | Phonetic Error Recovery using Soundex-like keys on synonym table |
+| **CDA** | Command Dependency Analyzer — temporal deps + navigation conflict detection |
+| **Multi-Domain Grammar** | 6 domains, 67 patterns, 36 semantic actions in `smart_world.cfg` |
 
 ## Architecture
 
 ```
-[robot.cfg]  --offline-->  tinycfg_compiler.py  -->  robot_grammar.h (compact tables)
-                                                              |
-Voice -> ESpeech STT -> TinyCFG Tokenizer -> LL(1) Parser -> Task Tree -> Actions
+[smart_world.cfg] --offline--> tinycfg_compiler.py --> smart_world_grammar.h
+                                                          |
+Serial/STT text --> Tokenizer --> LL(1) Parser --> Task Tree --> CDA --> Actions
+                     PER+fuzzy
 ```
 
-### Design Goals (from TinyCFG objectives)
+## Grammars
 
-| Goal | Implementation |
-|------|----------------|
-| Lightweight | Fixed pools, no heap; < 2 KB RAM typical |
-| Deterministic | LL(1) recursive-descent, no ML |
-| Multi-intent | `and`, `then`, `after`, `before`, `if`, `until` operators |
-| Explainable | `printTaskTree()` outputs human-readable trees |
-| ESP32-ready | Arduino C++, PROGMEM-friendly tables |
+| File | Domain | Patterns |
+|------|--------|----------|
+| `tinycfg/grammars/smart_world.cfg` | All domains (composite) | 67 |
+| `tinycfg/grammars/smarthome.cfg` | Lights, locks, scenes | 7 |
+| `tinycfg/grammars/robot_nav.cfg` | Navigation, patrol, dock | 9 |
+| `tinycfg/grammars/robot.cfg` | Legacy minimal robot | 4 |
 
-## Quick Start
+### Real-world command coverage
 
-### 1. Compile a grammar (offline, on PC)
+- **Smart home**: lights, fan, locks, curtains, scenes (movie/night/party)
+- **Robot**: navigate, follow, patrol, come here, dock, stop
+- **Media**: play/pause, volume, mute, skip tracks
+- **Security**: arm/disarm alarm, camera view/record
+- **Climate**: thermostat, heat/cool
+- **Timer**: set/cancel countdown
+
+## Compile Grammar (PC)
 
 ```bash
-python tools/tinycfg_compiler.py tinycfg/grammars/robot.cfg
+python tools/tinycfg_compiler.py tinycfg/grammars/smart_world.cfg
+python tools/tinycfg_compiler.py tinycfg/grammars/smarthome.cfg
+python tools/tinycfg_compiler.py tinycfg/grammars/robot_nav.cfg
 ```
 
-Output: `src/grammars/robot_grammar.h`
+## CLI Test (NO STT — CFG only)
 
-### 2. Flash standalone example
+Upload **`examples/TinyCFG_CLI_Test/TinyCFG_CLI_Test.ino`** to ESP32.
 
-Open `examples/TinyCFG_Robot/TinyCFG_Robot.ino`, upload, and type:
+Open Serial Monitor @ 115200:
+
+```
+help
+info
+test                    # run 19-case test suite
+bench                   # latency benchmark
+parse turn on room light and come here
+tokens go to kitchen then play music
+examples
+```
+
+### Sample multi-intent commands
 
 ```
 turn on room light and come here
+go to kitchen then play music
+arm alarm then patrol garden
+scene movie and turn off living light
+set timer for ten minutes then dock
+unlock back door and open curtain
 ```
 
-Expected task tree:
+## Evaluation Metrics (built-in)
 
-```
-TASK_LIST
-  LIGHT_ON(room_light)
-  OP(and)
-  COME_HERE()
-```
-
-### 3. Full STT pipeline
-
-Open `examples/TinyCFG_ESpeech/TinyCFG_ESpeech.ino`, set WiFi credentials,
-and send `start` over Serial to record + parse voice commands.
-
-## Writing a Custom Grammar
-
-Edit `tinycfg/grammars/robot.cfg`:
-
-```ini
-[terminals]
-turn : switch, activate
-on   : enable
-
-[rules]
-TASK_LIST -> TASK OP_REST
-LIGHT_ON  -> turn on OBJECT => LIGHT_ON($OBJECT)
-OBJECT    -> room light => room_light
-```
-
-Re-run the compiler and rebuild your sketch.
+`parser.printMetrics(Serial)` reports:
+- Parse latency (µs)
+- RAM footprint (bytes)
+- Confidence score
+- Phonetic recovery count
+- Pattern match count
 
 ## API
 
@@ -77,14 +132,19 @@ Re-run the compiler and rebuild your sketch.
 #include <TinyCFG.h>
 
 TinyCFG parser;
-parser.setActionHandler(myHandler);
-parser.parse("turn on room light and come here");
+parser.setPhoneticRecovery(true);
+parser.setActionHandler(handler);
+parser.parse("turn on bedroom light and go to kitchen");
 parser.printTaskTree(Serial);
+parser.printDependencyReport(Serial);
+parser.printMetrics(Serial);
 parser.executeActions();
 ```
 
-## Error Recovery
+## Paper Evaluation Checklist
 
-- **Fuzzy matching**: tolerates minor STT typos (e.g. `lite` → `light`)
-- **Token skip**: unknown tokens are skipped when recovery is enabled
-- **Confidence score**: `getStats().confidence` reports parse quality
+1. Flash `TinyCFG_CLI_Test`, run `test` → record pass rate
+2. Run `bench` → record avg/min/max latency
+3. Compare `fuzzy on` vs `fuzzy off` on noisy STT strings
+4. Compare `phonetic on` vs `off` on phonetic errors (`lite`, `com here`)
+5. Run multi-intent commands → verify CDA dependency output

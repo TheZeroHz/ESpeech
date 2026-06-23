@@ -14,11 +14,18 @@ serverURL	KEYWORD2
 recordAudio	KEYWORD2
 getTranscription	KEYWORD2
 parse	KEYWORD2
+tokenizeOnly	KEYWORD2
 printTaskTree	KEYWORD2
+printDependencyReport	KEYWORD2
+printMetrics	KEYWORD2
+printTokens	KEYWORD2
 executeActions	KEYWORD2
 setActionHandler	KEYWORD2
 setFuzzyMatch	KEYWORD2
+setPhoneticRecovery	KEYWORD2
 setErrorRecovery	KEYWORD2
+getGrammarName	KEYWORD2
+getPatternCount	KEYWORD2
 #######################################
 # Instances (KEYWORD2)
 #######################################
