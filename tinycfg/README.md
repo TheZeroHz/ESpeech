@@ -1,4 +1,4 @@
-# TinyCFG v2 — Conference-Grade Voice Command Parser
+# TinyCFG v2 — Voice Command Parser
 
 **TinyCFG** is a lightweight, deterministic Context-Free Grammar (CFG) framework for
 multi-intent voice command understanding on resource-constrained ESP32 robots.
