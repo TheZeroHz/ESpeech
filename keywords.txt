@@ -6,12 +6,19 @@
 # Datatypes (KEYWORD1)
 #######################################
 ESpeech	KEYWORD1
+TinyCFG	KEYWORD1
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 serverURL	KEYWORD2
 recordAudio	KEYWORD2
 getTranscription	KEYWORD2
+parse	KEYWORD2
+printTaskTree	KEYWORD2
+executeActions	KEYWORD2
+setActionHandler	KEYWORD2
+setFuzzyMatch	KEYWORD2
+setErrorRecovery	KEYWORD2
 #######################################
 # Instances (KEYWORD2)
 #######################################
