@@ -869,6 +869,7 @@ turn on {location} heater => HEAT_ON({location}) @domain climate @resource hvac
 | `src/TinyCFGDependency.h` / `.cpp` | CDA module |
 | `src/TinyCFGGrammar.h` | Grammar header include |
 | `examples/TinyCFG_CLI_Test/` | Serial test harness (no STT) |
+| `benchmark/` | Host C++ benchmark + MSc analysis tables |
 | `examples/TinyCFG_ESpeech/` | STT + TinyCFG pipeline |
 | `tinycfg/README.md` | Quick start |
 | `tinycfg/method.md` | This document |
@@ -876,6 +877,8 @@ turn on {location} heater => HEAT_ON({location}) @domain climate @resource hvac
 ---
 
 ## 14. Evaluation checklist (reproducible)
+
+### On-device (ESP32)
 
 1. Flash `TinyCFG_CLI_Test`
 2. Run `test` → record pass rate (target: **30/31+**)
@@ -886,6 +889,25 @@ turn on {location} heater => HEAT_ON({location}) @domain climate @resource hvac
 7. Toggle `fuzzy off` on Test G → compare confidence drop
 8. Run multi-intent + CDA cases → verify `executionSafe`
 9. Note `sizeof(TinyCFG)` from `info` for memory table in paper
+
+### Host benchmark (MSc / thesis tables)
+
+A **PC-compilable C++ benchmark** lives in `benchmark/`:
+
+```bash
+cd benchmark
+make && make run                    # Linux/macOS
+# or: build.bat (MinGW) / build_msvc.bat (Visual Studio)
+python analyze_results.py results_raw.csv --latex
+```
+
+| Output | Content |
+|--------|---------|
+| `dataset.csv` | 53 labelled cases, 12 categories |
+| `results_raw.csv` | Per-case latency + accuracy (500 iter/case) |
+| `BENCHMARK_ANALYSIS.md` | Tables: accuracy, latency, robustness, failures |
+
+See `benchmark/README.md` for full instructions and dataset category definitions.
 
 ---
 

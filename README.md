@@ -197,6 +197,149 @@ curl -X POST http://localhost:8888/uploadAudio --data-binary "@yourfile.wav"
 
 ---
 
+---
+
+## TinyCFG — Class & Concept Definitions
+
+TinyCFG is the lightweight LL(1) voice-command parser bundled with this project.
+Below is a plain-English guide to every class, enum, and key concept used in the library.
+
+---
+
+### Core classes
+
+#### `TinyCFG`
+The main parser class. You create one instance, call `parse(text)`, and read the results.
+
+| Method | What it does |
+|--------|-------------|
+| `parse(text)` | Tokenize → DGS expand → PER/fuzzy recover → pattern match → build task tree. Returns `true` if at least one action was found. |
+| `printPipeline(Serial)` | Print full data-flow trace: raw → normalized → tokens → pattern → actions |
+| `printDataFlow(Serial)` | Print step-by-step data transformation (raw text → final action names) |
+| `printActionsSummary(Serial)` | Print matched actions with confidence and operator hints |
+| `executeActions(callback)` | Walk the task tree and call your callback for each ACTION node |
+| `dispatchActions(Serial)` | Operator-aware print: AND executes all, OR executes first, THEN in order |
+
+**Internal pipeline stages:**
+
+```
+Raw text
+  └─ normalize (lowercase, strip punctuation)
+       └─ DGS expand (split glued/camelCase words)
+            └─ tokenize
+                 └─ PER / fuzzy recovery (fix phonetic / typo errors)
+                      └─ pattern match (LL(1) grammar)
+                           └─ slot capture (names, locations)
+                                └─ task tree build
+                                     └─ CDA (dependency analysis)
+```
+
+---
+
+#### `TcfgTaskNode`
+A node in the hierarchical **task tree** produced after a successful parse.
+
+| Field | Type | Meaning |
+|-------|------|---------|
+| `type` | `TcfgNodeType` | What kind of node this is (ACTION, SLOT, SEQ, ARGS, ROOT) |
+| `label` | `char[]` | Human-readable label: action name, slot value, or operator name |
+| `children[]` | `TcfgTaskNode*` | Child nodes (e.g. arguments of an action, sub-commands of a sequence) |
+| `confidence` | `float` | 0.0–1.0, how certain the parser is about this node |
+| `seqOp` | `TcfgSeqOp` | For SEQ nodes: which composition operator links the children |
+
+---
+
+#### `TcfgParseStats`
+Lightweight metrics collected during a `parse()` call — available after parsing.
+
+| Field | Meaning |
+|-------|---------|
+| `tokenCount` | Number of tokens after expansion |
+| `noiseSkipped` | Tokens skipped by gap-tolerant matcher |
+| `phoneticHits` | Tokens recovered by PER (Soundex) |
+| `gluedSegments` | Sub-words produced by DGS degluing |
+| `ramUsed` | Estimated peak RAM for this parse (bytes) |
+| `parseTimeUs` | Wall-clock parse time in microseconds |
+| `confidence` | Overall confidence (product of per-node scores) |
+
+---
+
+#### `TcfgDependencyReport`  *(from `TinyCFGDependency.h`)*
+Produced by `TinyCFGDependency::analyze(taskTree)`.  Identifies which commands
+in a multi-intent utterance share devices or conflict with each other.
+
+| Field | Meaning |
+|-------|---------|
+| `edges[]` | Directed edges between task nodes (`node_a` → `node_b`) |
+| `conflicts[]` | Pairs of commands that are mutually exclusive (e.g. LIGHT_ON and LIGHT_OFF for same device) |
+| `conflictType` | `TcfgConflictType` enum value for each conflict |
+| `sequenceOp` | Operator that links the two tasks (`TCFG_SEQ_AND`, `TCFG_SEQ_OR`, `TCFG_SEQ_THEN`, …) |
+
+---
+
+### Enums
+
+#### `TcfgNodeType` — what kind of task-tree node
+
+| Value | Meaning |
+|-------|---------|
+| `TCFG_NODE_ROOT` | Root of the task tree (always present) |
+| `TCFG_NODE_ACTION` | A matched voice command action (e.g. `LIGHT_ON`, `FAN_OFF`) |
+| `TCFG_NODE_SEQ` | A sequence connector linking two sub-trees |
+| `TCFG_NODE_ARGS` | Argument group (device, location, slot values) |
+| `TCFG_NODE_SLOT` | A named slot value (person name, custom label) |
+
+---
+
+#### `TcfgSeqOp` — how two commands are composed
+
+| Value | Keyword | Meaning |
+|-------|---------|---------|
+| `TCFG_SEQ_NONE` | *(none)* | Single command, no composition |
+| `TCFG_SEQ_AND` | `and` | Execute both commands |
+| `TCFG_SEQ_OR` | `or` | Choose one alternative; first is dispatched |
+| `TCFG_SEQ_THEN` | `then` | Execute first, then second in order |
+| `TCFG_SEQ_AFTER` | `after` | Second triggers when first completes |
+| `TCFG_SEQ_BEFORE` | `before` | Explicit temporal ordering |
+| `TCFG_SEQ_IF` | `if` | Conditional: second only if first succeeds |
+| `TCFG_SEQ_UNTIL` | `until` | Loop first until second condition met |
+| `TCFG_SEQ_WHILE` | `while` | Execute first only while condition holds |
+| `TCFG_SEQ_JUXTA` | *(none — implicit)* | Two commands detected back-to-back with no operator keyword |
+
+---
+
+#### `TcfgConflictType` — type of semantic conflict
+
+| Value | Meaning |
+|-------|---------|
+| `TCFG_CONFLICT_NONE` | No conflict |
+| `TCFG_CONFLICT_TOGGLE` | ON and OFF for the same device in the same utterance |
+| `TCFG_CONFLICT_RESOURCE` | Two actions compete for the same physical resource |
+| `TCFG_CONFLICT_TEMPORAL` | Ordering conflict (A before B but B preconditions A) |
+
+---
+
+### Benchmark dataset classes
+
+See `benchmark/README.md` for the full definition of each test category.
+Quick summary:
+
+| Category | What is tested | expect_pass |
+|----------|---------------|-------------|
+| `single_clean` | One clean command, correct vocab | 1 |
+| `multi_and` | Two commands joined by `and` | 1 |
+| `multi_or` | Two commands joined by `or` | 1 |
+| `multi_juxta` | Two commands with no connector (implicit) | 1 |
+| `named_slot` | Commands containing a person's name as a slot | 1 |
+| `stt_noise` | Garbled STT output: fillers, garbage tokens, digits | 1 |
+| `glued_dgs` | CamelCase or run-together words (DGS recovery) | 1 |
+| `fuzzy_per` | Spelling mistakes and phonetic substitutions (PER recovery) | 1 |
+| `temporal_then` | Two commands joined by `then` (ordered execution) | 1 |
+| `cross_domain` | Multi-intent commands spanning two grammar domains | 1 |
+| `negative` | Out-of-grammar utterances — parser should reject them | 0 |
+
+---
+
 ## License
 
 This repository: MIT (see `LICENSE`).

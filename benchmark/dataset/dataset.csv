@@ -1,0 +1,501 @@
+id,category,input,expect_pass,expect_action,description
+1,named_slot,turn on omar fan,1,FAN_ON,Named: Named fan only
+2,multi_juxta,play music volume up,1,MEDIA_PLAY,Back-to-back media
+3,named_slot,turn on nina front light,1,LIGHT_ON,Named: Named light
+4,negative,lock the window,0,,Unsupported device
+5,stt_noise,OKAY UM RECORD LIVING CAMERA RIGHT NOW ER ADJFIJA PLEASE,1,CAMERA_RECORD,Noisy STT: Record camera
+6,stt_noise,xxx adjfija could you hmm record bathroom camera now,1,CAMERA_RECORD,Noisy STT: Record camera
+7,multi_or,heat up or cool down,1,TEMP_UP,Heat or cool
+8,multi_or,come here or go home,1,COME_HERE,Come or home
+9,multi_or,come here or go home,1,COME_HERE,Come or home
+10,fuzzy_per,turn off living light okay okay,1,LIGHT_OFF,Typo recovery: Light off location
+11,cross_domain,turn on kitchen light then turn off room fan,1,LIGHT_ON,Cross-domain then: Dual smarthome
+12,named_slot,turn on nina fan,1,FAN_ON,Named: Named fan only
+13,glued_dgs,turnOffHallwayFan,1,FAN_OFF,DGS glued: Fan off location
+14,single_clean,stop,1,STOP,Emergency stop
+15,multi_and,open bedroom curtain and close living curtain,1,CURTAIN_OPEN,Dual curtains
+16,single_clean,unlock ben office door,1,UNLOCK,Unlock named location door
+17,cross_domain,scene movie and turn on living light,1,SCENE,Cross-domain and: Scene and light
+18,named_slot,turn on alex office fan,1,FAN_ON,Named: Named fan
+19,negative,hey send email to boss,0,,Office task
+20,named_slot,turn on emily living fan,1,FAN_ON,Named: Named fan
+21,fuzzy_per,check living camera,1,CAMERA_VIEW,Typo recovery: View camera
+22,named_slot,unlock david door,1,UNLOCK,Named: Unlock named door
+23,glued_dgs,coolDown,1,TEMP_DOWN,DGS glued: Decrease temp
+24,cross_domain,turn off room fan and lock front door,1,FAN_OFF,Cross-domain and: Fan and lock
+25,named_slot,turn on lisa fan,1,FAN_ON,Named: Named fan only
+26,single_clean,play music,1,MEDIA_PLAY,Play music
+27,cross_domain,turn off kitchen fan and lock front door,1,FAN_OFF,Cross-domain and: Fan and lock
+28,temporal_then,turn off priya bedroom fan then turn on kitchen light,1,FAN_OFF,Then smarthome
+29,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+30,glued_dgs,goHome,1,NAV_HOME,DGS glued: Go home
+31,multi_juxta,turn on office light turn off kitchen fan,1,LIGHT_ON,Back-to-back smarthome
+32,stt_noise,i want to 999 scene party 09309582903 hmm please thanks,1,SCENE,Noisy STT: Party scene
+33,glued_dgs,heatUp,1,TEMP_UP,DGS glued: Increase temp
+34,stt_noise,THE LIKE OKAY UM LIKE GO HOME PLEASE NOW,1,NAV_HOME,Noisy STT: Go home
+35,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+36,multi_or,arm alarm or disarm alarm,1,ALARM_ARM,Arm or disarm
+37,negative,hello world foo bar,0,,English but no command
+38,multi_juxta,turn on kitchen light turn off back fan,1,LIGHT_ON,Back-to-back smarthome
+39,negative,what is the time,0,,Question not command
+40,multi_and,heat up and cool down,1,TEMP_UP,Climate dual
+41,glued_dgs,heatUp,1,TEMP_UP,DGS glued: Increase temp
+42,multi_and,patrol hallway and go home,1,PATROL,Patrol and home
+43,multi_and,play music and volume up,1,MEDIA_PLAY,Media and volume
+44,single_clean,unlock mike room door,1,UNLOCK,Unlock named location door
+45,negative,make me coffee,0,,Out of grammar
+46,cross_domain,turn off david bedroom fan then turn on kitchen light,1,FAN_OFF,Cross-domain then: Then smarthome
+47,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+48,single_clean,scene movie,1,SCENE,Movie scene
+49,multi_or,turn on living light or turn off hallway fan,1,LIGHT_ON,Light or fan
+50,named_slot,unlock lisa back door,1,UNLOCK,Named: Unlock named location door
+51,glued_dgs,mute,1,MUTE,DGS glued: Mute audio
+52,fuzzy_per,check front cameras,1,CAMERA_VIEW,Typo recovery: View camera
+53,multi_and,turn on living room light and come here,1,LIGHT_ON,Light and robot
+54,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+55,fuzzy_per,okay paly lisa playlist please now,1,MEDIA_PLAY,Typo recovery: Play playlist
+56,cross_domain,turn off bathroom fan and lock front door,1,FAN_OFF,Cross-domain and: Fan and lock
+57,fuzzy_per,could you previous song,1,PREVIOUS_TRACK,Typo recovery: Previous track
+58,single_clean,go home,1,NAV_HOME,Go home
+59,fuzzy_per,fllow me,1,FOLLOW_ME,Typo recovery: Follow user
+60,named_slot,turn on john fan,1,FAN_ON,Named: Named fan only
+61,fuzzy_per,scene movie,1,SCENE,Typo recovery: Movie scene
+62,cross_domain,turn off bedroom fan then lock front door,1,FAN_OFF,Cross-domain then: Fan and lock
+63,glued_dgs,checkgaragecamera,1,CAMERA_VIEW,DGS glued: View camera
+64,multi_or,play music or pause music,1,MEDIA_PLAY,Play or pause
+65,stt_noise,UM $$$ TURN LIKE HMM ER OFF BACK FAN PLEASE WELL,1,FAN_OFF,Noisy STT: Fan off location
+66,negative,send email to boss,0,,Office task
+67,multi_and,turn off bathroom fan and lock front door,1,FAN_OFF,Fan and lock
+68,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+69,stt_noise,HMM HMM OKAY UM SCENE UHH MOVIE THIS,1,SCENE,Noisy STT: Movie scene
+70,named_slot,turn on rakib front light,1,LIGHT_ON,Named: Named light
+71,temporal_then,go to living room then follow me,1,NAV_GO,Then nav
+72,stt_noise,adjfija go to the kitchen please a,1,NAV_GO,Noisy STT: Nav and follow
+73,negative,what is the time please now,0,,Question not command
+74,fuzzy_per,unmute please,1,UNMUTE,Typo recovery: Unmute audio
+75,fuzzy_per,okay unlock mike door please,1,UNLOCK,Typo recovery: Unlock named door
+76,stt_noise,hey well turn adjfija on room fan please adjfija please,1,FAN_ON,Noisy STT: Fan on location
+77,multi_or,heat up or cool down,1,TEMP_UP,Heat or cool
+78,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+79,named_slot,turn on ben bathroom fan,1,FAN_ON,Named: Named fan
+80,single_clean,turn on office fan,1,FAN_ON,Fan on location
+81,single_clean,scene party,1,SCENE,Party scene
+82,named_slot,unlock kate door,1,UNLOCK,Named: Unlock named door
+83,cross_domain,disarm alarm and check cameras,1,ALARM_DISARM,Cross-domain and: Then security
+84,stt_noise,uh go to so rakib office please 09309582903 er,1,NAV_GO,Noisy STT: Navigate to named office
+85,named_slot,unlock nina back door,1,UNLOCK,Named: Unlock named location door
+86,single_clean,switch on office lamp,1,LIGHT_ON,Switch synonym
+87,named_slot,turn on anna living light,1,LIGHT_ON,Named: Named light
+88,stt_noise,UM TURN OFF BEDROOM LIGHT NOW LIKE,1,LIGHT_OFF,Noisy STT: Light off location
+89,stt_noise,uh scene party now well thanks,1,SCENE,Noisy STT: Party scene
+90,named_slot,unlock zoe door,1,UNLOCK,Named: Unlock named door
+91,single_clean,go to alex office,1,NAV_GO,Navigate to named office
+92,single_clean,volume down,1,VOLUME_DOWN,Volume down
+93,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+94,cross_domain,go to kitchen and follow me,1,NAV_GO,Cross-domain and: Nav and follow
+95,multi_and,scene movie and turn on living light,1,SCENE,Scene and light
+96,single_clean,wait,1,WAIT,Wait command
+97,fuzzy_per,lck garden dor,1,LOCK,Typo recovery: Lock door
+98,single_clean,turn on mary living light,1,LIGHT_ON,Named light
+99,glued_dgs,sceneMovie,1,SCENE,DGS glued: Movie scene
+100,glued_dgs,switchOnFrontLamp,1,LIGHT_ON,DGS glued: Switch synonym
+101,multi_and,patrol hallway and go home,1,PATROL,Patrol and home
+102,multi_juxta,play music volume up,1,MEDIA_PLAY,Back-to-back media
+103,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+104,stt_noise,uhh xxx hey scene movie now a now,1,SCENE,Noisy STT: Scene and light
+105,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+106,multi_or,heat up or cool down,1,TEMP_UP,Heat or cool
+107,fuzzy_per,cancel timer,1,TIMER_CANCEL,Typo recovery: Cancel timer
+108,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+109,multi_juxta,turn on garden light turn off back fan,1,LIGHT_ON,Back-to-back smarthome
+110,named_slot,turn on nina garden light,1,LIGHT_ON,Named: Named light
+111,glued_dgs,playMariasPlaylist,1,MEDIA_PLAY,DGS glued: Play playlist
+112,stt_noise,turn on kitchen so light right now the thanks,1,LIGHT_ON,Noisy STT: Dual smarthome
+113,glued_dgs,cooldown,1,TEMP_DOWN,DGS glued: Decrease temp
+114,stt_noise,um cool down well okay,1,TEMP_DOWN,Noisy STT: Decrease temp
+115,glued_dgs,followMe,1,FOLLOW_ME,DGS glued: Follow user
+116,stt_noise,Okay Xxx Turn Off 120 Uhh Adjfija Living Fan Right Now Okay,1,FAN_OFF,Noisy STT: Fan and lock
+117,glued_dgs,armAlarm,1,ALARM_ARM,DGS glued: Arm security
+118,multi_and,patrol hallway and go home,1,PATROL,Patrol and home
+119,cross_domain,turn off johns bedroom fan and turn on kitchen light,1,FAN_OFF,Cross-domain and: Then smarthome
+120,stt_noise,Er I Want To Come Here Right 09309582903 Now So,1,COME_HERE,Noisy STT: Robot come
+121,single_clean,play marias playlist,1,MEDIA_PLAY,Play playlist
+122,glued_dgs,coolDown,1,TEMP_DOWN,DGS glued: Decrease temp
+123,named_slot,turn on marias kitchen light,1,LIGHT_ON,Named: Named light
+124,multi_and,go to kitchen and follow me,1,NAV_GO,Nav and follow
+125,fuzzy_per,okay lock garage door,1,LOCK,Typo recovery: Lock door
+126,fuzzy_per,hey scene night now,1,SCENE,Typo recovery: Night scene
+127,cross_domain,set timer for five minutes then turn off room fan,1,TIMER_SET,Cross-domain then: Then timer
+128,cross_domain,go to kitchen then follow me,1,NAV_GO,Cross-domain then: Nav and follow
+129,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+130,negative,tell me a joke,0,,Conversational
+131,single_clean,disarm alarm,1,ALARM_DISARM,Disarm security
+132,temporal_then,set timer for five minutes then turn off room fan,1,TIMER_SET,Then timer
+133,stt_noise,okay um er scene party now this thanks,1,SCENE,Noisy STT: Party scene
+134,fuzzy_per,coem heer,1,COME_HERE,Typo recovery: Robot come
+135,multi_and,open bedroom curtain and close living curtain,1,CURTAIN_OPEN,Dual curtains
+136,glued_dgs,turnOnDavidFan,1,FAN_ON,DGS glued: Named fan only
+137,glued_dgs,unmute,1,UNMUTE,DGS glued: Unmute audio
+138,stt_noise,Like Please So Adjfija 42 Unmute Er Okay,1,UNMUTE,Noisy STT: Unmute audio
+139,multi_juxta,come here go home,1,COME_HERE,Back-to-back nav
+140,multi_and,scene movie and turn on living light,1,SCENE,Scene and light
+141,negative,play football,0,,Wrong play context
+142,single_clean,arm alarm,1,ALARM_ARM,Arm security
+143,single_clean,lock bedroom door,1,LOCK,Lock door
+144,fuzzy_per,i want to set tmer for five minutes right now thanks,1,TIMER_SET,Typo recovery: Set timer
+145,stt_noise,please heat up 09309582903 now,1,TEMP_UP,Noisy STT: Increase temp
+146,fuzzy_per,disarm alarm,1,ALARM_DISARM,Typo recovery: Disarm security
+147,named_slot,play kate playlist,1,MEDIA_PLAY,Named: Play playlist
+148,named_slot,turn on ahmed office fan,1,FAN_ON,Named: Named fan
+149,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+150,multi_or,play music or pause music,1,MEDIA_PLAY,Play or pause
+151,single_clean,set thermostat to seventy,1,TEMP_SET,Set thermostat
+152,temporal_then,go to living room then follow me,1,NAV_GO,Then nav
+153,single_clean,scene night,1,SCENE,Night scene
+154,multi_and,heat up and cool down,1,TEMP_UP,Climate dual
+155,single_clean,turn on tom bedroom light,1,LIGHT_ON,Named light
+156,cross_domain,turn off garden fan then lock front door,1,FAN_OFF,Cross-domain then: Fan and lock
+157,stt_noise,$$$ please 09309582903 play mike playlist 42 please please,1,MEDIA_PLAY,Noisy STT: Play playlist
+158,fuzzy_per,i need to tun on office fans please,1,FAN_ON,Typo recovery: Fan on location
+159,cross_domain,disarm alarm then check cameras,1,ALARM_DISARM,Cross-domain then: Then security
+160,cross_domain,go to kitchen then follow me,1,NAV_GO,Cross-domain then: Nav and follow
+161,stt_noise,TURN $$$ OFF HALLWAY FAN OKAY ER,1,FAN_OFF,Noisy STT: Fan off location
+162,multi_and,turn on bathroom light and come here,1,LIGHT_ON,Light and robot
+163,glued_dgs,setThermostatToSeventy,1,TEMP_SET,DGS glued: Set thermostat
+164,named_slot,turn on mike kitchen light,1,LIGHT_ON,Named: Named light
+165,stt_noise,could er you this cancel timer okay okay,1,TIMER_CANCEL,Noisy STT: Cancel timer
+166,stt_noise,OKAY UM UNLOCK ER THE RAKIB OFFICE DOOR RIGHT NOW THANKS,1,UNLOCK,Noisy STT: Unlock named location door
+167,single_clean,stop,1,STOP,Emergency stop
+168,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+169,stt_noise,HEY THE HEAT THE UP THE THIS PLEASE,1,TEMP_UP,Noisy STT: Increase temp
+170,stt_noise,um turn on zoe er fan 999 09309582903 so thanks,1,FAN_ON,Noisy STT: Named fan only
+171,cross_domain,arm alarm then check garage camera,1,ALARM_ARM,Cross-domain then: Arm and camera
+172,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+173,named_slot,turn on david fan,1,FAN_ON,Named: Named fan only
+174,glued_dgs,mute,1,MUTE,DGS glued: Mute audio
+175,named_slot,turn on david fan,1,FAN_ON,Named: Named fan only
+176,stt_noise,uh go to david like a hmm office adjfija,1,NAV_GO,Noisy STT: Navigate to named office
+177,multi_or,play music or pause music,1,MEDIA_PLAY,Play or pause
+178,glued_dgs,sceneParty,1,SCENE,DGS glued: Party scene
+179,multi_or,arm alarm or disarm alarm,1,ALARM_ARM,Arm or disarm
+180,glued_dgs,switchon hallway lamp,1,LIGHT_ON,DGS glued: Switch synonym
+181,negative,turn on the sun,0,,Nonsense target
+182,stt_noise,could you set timer for 42 five minutes 999 okay thanks,1,TIMER_SET,Noisy STT: Set timer
+183,multi_juxta,play music volume up,1,MEDIA_PLAY,Back-to-back media
+184,multi_or,heat up or cool down,1,TEMP_UP,Heat or cool
+185,negative,what is the time,0,,Question not command
+186,single_clean,record room camera,1,CAMERA_RECORD,Record camera
+187,multi_and,open bedroom curtain and close living curtain,1,CURTAIN_OPEN,Dual curtains
+188,stt_noise,er i the 09309582903 want to dock now adjfija $$$,1,NAV_DOCK,Noisy STT: Dock robot
+189,named_slot,go to james office,1,NAV_GO,Named: Navigate to named office
+190,single_clean,volume down,1,VOLUME_DOWN,Volume down
+191,stt_noise,okay turn on kitchen light the this okay okay,1,LIGHT_ON,Noisy STT: Dual smarthome
+192,stt_noise,um set timer for five minutes right the now please er,1,TIMER_SET,Noisy STT: Set timer
+193,fuzzy_per,um go to bathroom right now,1,NAV_GO,Typo recovery: Navigate to location
+194,multi_or,come here or go home,1,COME_HERE,Come or home
+195,negative,open the refrigerator,0,,Unknown appliance
+196,named_slot,turn on lisa fan,1,FAN_ON,Named: Named fan only
+197,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+198,multi_and,patrol hallway and go home,1,PATROL,Patrol and home
+199,negative,hello world foo bar,0,,English but no command
+200,cross_domain,turn on kitchen light and turn off room fan,1,LIGHT_ON,Cross-domain and: Dual smarthome
+201,negative,hey what is the time,0,,Question not command
+202,single_clean,patrol living,1,PATROL,Patrol zone
+203,glued_dgs,nextSong,1,NEXT_TRACK,DGS glued: Next track
+204,multi_and,turn on kitchen light and turn off room fan,1,LIGHT_ON,Dual smarthome
+205,single_clean,arm alarm,1,ALARM_ARM,Arm security
+206,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+207,single_clean,wait,1,WAIT,Wait command
+208,cross_domain,turn on kitchen light then turn off room fan,1,LIGHT_ON,Cross-domain then: Dual smarthome
+209,named_slot,turn on tom garage fan,1,FAN_ON,Named: Named fan
+210,cross_domain,open bedroom curtain then close living curtain,1,CURTAIN_OPEN,Cross-domain then: Dual curtains
+211,named_slot,unlock mary door,1,UNLOCK,Named: Unlock named door
+212,single_clean,set timer for five minutes,1,TIMER_SET,Set timer
+213,stt_noise,a i want to cool down this now please,1,TEMP_DOWN,Noisy STT: Decrease temp
+214,fuzzy_per,i want to sene party okay thanks,1,SCENE,Typo recovery: Party scene
+215,stt_noise,I THIS NEED TO A STOP HMM OKAY OKAY,1,STOP,Noisy STT: Emergency stop
+216,fuzzy_per,turn off kitchen fn,1,FAN_OFF,Typo recovery: Fan off location
+217,named_slot,play lisa playlist,1,MEDIA_PLAY,Named: Play playlist
+218,single_clean,scene movie,1,SCENE,Movie scene
+219,stt_noise,hmm i want to turn on 42 sarah living fan right now now well,1,FAN_ON,Noisy STT: Named fan
+220,multi_and,turn on back light and come here,1,LIGHT_ON,Light and robot
+221,multi_or,heat up or cool down,1,TEMP_UP,Heat or cool
+222,named_slot,turn on john front light,1,LIGHT_ON,Named: Named light
+223,negative,go to mars,0,,Unknown location
+224,multi_juxta,play music volume up,1,MEDIA_PLAY,Back-to-back media
+225,stt_noise,i 999 want to turn on marias adjfija back fan please,1,FAN_ON,Noisy STT: Named fan
+226,multi_juxta,come here go home,1,COME_HERE,Back-to-back nav
+227,stt_noise,a please 999 next 42 song 999 thanks,1,NEXT_TRACK,Noisy STT: Next track
+228,stt_noise,THIS UM WELL $$$ LOCK UHH SO BATHROOM DOOR,1,LOCK,Noisy STT: Lock door
+229,cross_domain,disarm alarm then check cameras,1,ALARM_DISARM,Cross-domain then: Then security
+230,named_slot,unlock kate room door,1,UNLOCK,Named: Unlock named location door
+231,stt_noise,UH PATROL SO GARDEN NOW HMM OKAY 09309582903,1,PATROL,Noisy STT: Patrol zone
+232,cross_domain,disarm alarm and check cameras,1,ALARM_DISARM,Cross-domain and: Then security
+233,single_clean,next song,1,NEXT_TRACK,Next track
+234,named_slot,turn on zoe garden fan,1,FAN_ON,Named: Named fan
+235,named_slot,go to david office,1,NAV_GO,Named: Navigate to named office
+236,cross_domain,set timer for five minutes and turn off room fan,1,TIMER_SET,Cross-domain and: Then timer
+237,multi_juxta,come here go home,1,COME_HERE,Back-to-back nav
+238,glued_dgs,turnOffOfficeFan,1,FAN_OFF,DGS glued: Fan off location
+239,stt_noise,i well want well to dock okay now 999 so,1,NAV_DOCK,Noisy STT: Dock robot
+240,fuzzy_per,arm alarm,1,ALARM_ARM,Typo recovery: Arm security
+241,fuzzy_per,could you goo to back right now now,1,NAV_GO,Typo recovery: Navigate to location
+242,stt_noise,09309582903 i $$$ want this to patrol living now,1,PATROL,Noisy STT: Patrol zone
+243,cross_domain,open bedroom curtain then close living curtain,1,CURTAIN_OPEN,Cross-domain then: Dual curtains
+244,negative,what is the time,0,,Question not command
+245,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+246,stt_noise,42 UM PATROL BATHROOM NOW,1,PATROL,Noisy STT: Patrol zone
+247,stt_noise,hey dock 42 okay well okay 42 09309582903,1,NAV_DOCK,Noisy STT: Dock robot
+248,glued_dgs,mute,1,MUTE,DGS glued: Mute audio
+249,glued_dgs,turn offgardenfan,1,FAN_OFF,DGS glued: Fan off location
+250,fuzzy_per,uh turn on tom back light okay,1,LIGHT_ON,Typo recovery: Named light
+251,stt_noise,please a turn this 09309582903 on marias fan okay okay this so,1,FAN_ON,Noisy STT: Named fan only
+252,multi_and,turn off bedroom fan and lock front door,1,FAN_OFF,Fan and lock
+253,multi_and,patrol hallway and go home,1,PATROL,Patrol and home
+254,named_slot,go to ben office,1,NAV_GO,Named: Navigate to named office
+255,multi_juxta,play music volume up,1,MEDIA_PLAY,Back-to-back media
+256,fuzzy_per,follow me,1,FOLLOW_ME,Typo recovery: Follow user
+257,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+258,single_clean,switch on garden lamp,1,LIGHT_ON,Switch synonym
+259,cross_domain,turn on kitchen light then turn off room fan,1,LIGHT_ON,Cross-domain then: Dual smarthome
+260,fuzzy_per,um go to bedroom please,1,NAV_GO,Typo recovery: Navigate to location
+261,stt_noise,hmm a heat up now 09309582903,1,TEMP_UP,Noisy STT: Increase temp
+262,fuzzy_per,switch on hallway lmp,1,LIGHT_ON,Typo recovery: Switch synonym
+263,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+264,glued_dgs,mute,1,MUTE,DGS glued: Mute audio
+265,negative,turn on the weather,0,,Unknown device
+266,glued_dgs,playMusic,1,MEDIA_PLAY,DGS glued: Play music
+267,glued_dgs,patrolGarage,1,PATROL,DGS glued: Patrol zone
+268,negative,turn on the sun,0,,Nonsense target
+269,single_clean,go to living,1,NAV_GO,Navigate to location
+270,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+271,multi_and,turn on living room light and come here,1,LIGHT_ON,Light and robot
+272,named_slot,play johns playlist,1,MEDIA_PLAY,Named: Play playlist
+273,multi_and,scene movie and turn on living light,1,SCENE,Scene and light
+274,multi_juxta,play music volume up,1,MEDIA_PLAY,Back-to-back media
+275,fuzzy_per,volme down,1,VOLUME_DOWN,Typo recovery: Volume down
+276,named_slot,go to priya office,1,NAV_GO,Named: Navigate to named office
+277,cross_domain,heat up and cool down,1,TEMP_UP,Cross-domain and: Climate dual
+278,cross_domain,play music then volume up,1,MEDIA_PLAY,Cross-domain then: Media and volume
+279,single_clean,turn on rakibs bedroom light,1,LIGHT_ON,Named light
+280,negative,volume sideways,0,,Nonsense modifier
+281,multi_or,play music or pause music,1,MEDIA_PLAY,Play or pause
+282,single_clean,check garage camera,1,CAMERA_VIEW,View camera
+283,stt_noise,FOLLOW LIKE ME NOW 09309582903 NOW 120,1,FOLLOW_ME,Noisy STT: Follow user
+284,stt_noise,Uh Arm Alarm The Okay $$$ Thanks 42 Adjfija,1,ALARM_ARM,Noisy STT: Arm and camera
+285,stt_noise,okay um so so mute uhh okay,1,MUTE,Noisy STT: Mute audio
+286,multi_and,heat up and cool down,1,TEMP_UP,Climate dual
+287,glued_dgs,coolDown,1,TEMP_DOWN,DGS glued: Decrease temp
+288,stt_noise,$$$ could you the so wait like now,1,WAIT,Noisy STT: Wait command
+289,negative,uh order pizza online okay,0,,Web task
+290,negative,make me coffee,0,,Out of grammar
+291,stt_noise,okay follow so me please xxx,1,FOLLOW_ME,Noisy STT: Follow user
+292,negative,open the refrigerator,0,,Unknown appliance
+293,glued_dgs,nextsong,1,NEXT_TRACK,DGS glued: Next track
+294,single_clean,unlock ahmed door,1,UNLOCK,Unlock named door
+295,stt_noise,hey uhh turn on back light now 120 okay,1,LIGHT_ON,Noisy STT: Light and robot
+296,multi_or,turn on bedroom light or turn off kitchen fan,1,LIGHT_ON,Light or fan
+297,glued_dgs,armAlarm,1,ALARM_ARM,DGS glued: Arm security
+298,temporal_then,set timer for five minutes then turn off room fan,1,TIMER_SET,Then timer
+299,single_clean,unlock alex door,1,UNLOCK,Unlock named door
+300,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+301,multi_or,play music or pause music,1,MEDIA_PLAY,Play or pause
+302,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+303,named_slot,go to mike office,1,NAV_GO,Named: Navigate to named office
+304,single_clean,dock,1,NAV_DOCK,Dock robot
+305,negative,please turn on the sun now,0,,Nonsense target
+306,named_slot,unlock tom door,1,UNLOCK,Named: Unlock named door
+307,negative,turn on the weather,0,,Unknown device
+308,multi_juxta,come here go home,1,COME_HERE,Back-to-back nav
+309,named_slot,go to ahmed office,1,NAV_GO,Named: Navigate to named office
+310,fuzzy_per,okay um set thermostat to seventy now,1,TEMP_SET,Typo recovery: Set thermostat
+311,negative,open the refrigerator,0,,Unknown appliance
+312,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+313,multi_juxta,come here go home,1,COME_HERE,Back-to-back nav
+314,temporal_then,set timer for five minutes then turn off room fan,1,TIMER_SET,Then timer
+315,multi_or,come here or go home,1,COME_HERE,Come or home
+316,glued_dgs,switchOnRoomLamp,1,LIGHT_ON,DGS glued: Switch synonym
+317,single_clean,set thermostat to seventy,1,TEMP_SET,Set thermostat
+318,stt_noise,go the like home please xxx a the now,1,NAV_HOME,Noisy STT: Go home
+319,cross_domain,set timer for five minutes then turn off room fan,1,TIMER_SET,Cross-domain then: Then timer
+320,multi_and,turn on garden light and come here,1,LIGHT_ON,Light and robot
+321,multi_and,go to kitchen and follow me,1,NAV_GO,Nav and follow
+322,single_clean,set timer for five minutes,1,TIMER_SET,Set timer
+323,stt_noise,I Want Well To Arm A Well 42 Alarm,1,ALARM_ARM,Noisy STT: Arm and camera
+324,glued_dgs,turnOnTomGardenFan,1,FAN_ON,DGS glued: Named fan
+325,single_clean,disarm alarm,1,ALARM_DISARM,Disarm security
+326,single_clean,scene night,1,SCENE,Night scene
+327,single_clean,go to back,1,NAV_GO,Navigate to location
+328,named_slot,play john playlist,1,MEDIA_PLAY,Named: Play playlist
+329,negative,send email to boss,0,,Office task
+330,negative,uh open the refrigerator,0,,Unknown appliance
+331,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+332,fuzzy_per,record room camera okay,1,CAMERA_RECORD,Typo recovery: Record camera
+333,stt_noise,could you er scene party 120 120 uhh okay so,1,SCENE,Noisy STT: Party scene
+334,named_slot,turn on mary fan,1,FAN_ON,Named: Named fan only
+335,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+336,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+337,fuzzy_per,volume down,1,VOLUME_DOWN,Typo recovery: Volume down
+338,negative,um order pizza online okay okay,0,,Web task
+339,multi_or,arm alarm or disarm alarm,1,ALARM_ARM,Arm or disarm
+340,temporal_then,turn off john bedroom fan then turn on kitchen light,1,FAN_OFF,Then smarthome
+341,cross_domain,turn off nina bedroom fan then turn on kitchen light,1,FAN_OFF,Cross-domain then: Then smarthome
+342,named_slot,turn on lisa kitchen light,1,LIGHT_ON,Named: Named light
+343,stt_noise,09309582903 er uhh $$$ hey like stop,1,STOP,Noisy STT: Emergency stop
+344,single_clean,disarm alarm,1,ALARM_DISARM,Disarm security
+345,negative,turn on the sun,0,,Nonsense target
+346,fuzzy_per,patol kitchen,1,PATROL,Typo recovery: Patrol zone
+347,glued_dgs,mute,1,MUTE,DGS glued: Mute audio
+348,negative,go to mars,0,,Unknown location
+349,fuzzy_per,turnn off bedroom fan right now please,1,FAN_OFF,Typo recovery: Fan off location
+350,single_clean,go to living,1,NAV_GO,Navigate to location
+351,glued_dgs,setThermostatToSeventy,1,TEMP_SET,DGS glued: Set thermostat
+352,named_slot,turn on tom front fan,1,FAN_ON,Named: Named fan
+353,stt_noise,okay scene $$$ movie now,1,SCENE,Noisy STT: Movie scene
+354,stt_noise,hmm okay disarm alarm now thanks,1,ALARM_DISARM,Noisy STT: Disarm security
+355,named_slot,turn on omar room fan,1,FAN_ON,Named: Named fan
+356,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+357,negative,volume sideways,0,,Nonsense modifier
+358,named_slot,play anna playlist,1,MEDIA_PLAY,Named: Play playlist
+359,single_clean,pause music,1,MEDIA_PAUSE,Pause music
+360,glued_dgs,nextsong,1,NEXT_TRACK,DGS glued: Next track
+361,single_clean,play music,1,MEDIA_PLAY,Play music
+362,stt_noise,i want to switch on bedroom a lamp okay hmm,1,LIGHT_ON,Noisy STT: Switch synonym
+363,named_slot,go to alex office,1,NAV_GO,Named: Navigate to named office
+364,negative,can you order pizza online please,0,,Web task
+365,glued_dgs,disarmAlarm,1,ALARM_DISARM,DGS glued: Disarm security
+366,cross_domain,scene movie and turn on living light,1,SCENE,Cross-domain and: Scene and light
+367,temporal_then,go to living room then follow me,1,NAV_GO,Then nav
+368,glued_dgs,setTimerForFiveMinutes,1,TIMER_SET,DGS glued: Set timer
+369,multi_and,go to kitchen and follow me,1,NAV_GO,Nav and follow
+370,negative,turn on the sun,0,,Nonsense target
+371,named_slot,turn on lisa garage fan,1,FAN_ON,Named: Named fan
+372,fuzzy_per,turn on living rooom fan,1,FAN_ON,Typo recovery: Fan on location
+373,negative,tell me a joke,0,,Conversational
+374,named_slot,go to kate office,1,NAV_GO,Named: Navigate to named office
+375,fuzzy_per,can you volume up okay,1,VOLUME_UP,Typo recovery: Volume up
+376,multi_and,patrol hallway and go home,1,PATROL,Patrol and home
+377,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+378,multi_and,go to kitchen and follow me,1,NAV_GO,Nav and follow
+379,fuzzy_per,stp,1,STOP,Typo recovery: Emergency stop
+380,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+381,glued_dgs,sceneNight,1,SCENE,DGS glued: Night scene
+382,multi_juxta,turn on hallway light turn off bedroom fan,1,LIGHT_ON,Back-to-back smarthome
+383,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+384,named_slot,unlock marias door,1,UNLOCK,Named: Unlock named door
+385,negative,what is the time,0,,Question not command
+386,single_clean,wait,1,WAIT,Wait command
+387,fuzzy_per,lok front door,1,LOCK,Typo recovery: Lock door
+388,stt_noise,uh turn on david 999 front 120 fan now okay,1,FAN_ON,Noisy STT: Named fan
+389,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+390,cross_domain,patrol hallway and go home,1,PATROL,Cross-domain and: Patrol and home
+391,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+392,negative,go to mars,0,,Unknown location
+393,fuzzy_per,heat up,1,TEMP_UP,Typo recovery: Increase temp
+394,named_slot,go to sarahs office,1,NAV_GO,Named: Navigate to named office
+395,negative,what is the time,0,,Question not command
+396,negative,what is the time,0,,Question not command
+397,glued_dgs,lockGardenDoor,1,LOCK,DGS glued: Lock door
+398,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+399,stt_noise,can you play music okay 42 now,1,MEDIA_PLAY,Noisy STT: Media and volume
+400,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+401,stt_noise,okay 42 um close $$$ living curtain please,1,CURTAIN_CLOSE,Noisy STT: Close curtain
+402,single_clean,scene party,1,SCENE,Party scene
+403,temporal_then,set timer for five minutes then turn off room fan,1,TIMER_SET,Then timer
+404,multi_or,heat up or cool down,1,TEMP_UP,Heat or cool
+405,temporal_then,turn off james bedroom fan then turn on kitchen light,1,FAN_OFF,Then smarthome
+406,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+407,glued_dgs,setTimerForFiveMinutes,1,TIMER_SET,DGS glued: Set timer
+408,multi_and,turn on kitchen light and turn off room fan,1,LIGHT_ON,Dual smarthome
+409,stt_noise,hey 120 turn on a garden fan right now,1,FAN_ON,Noisy STT: Fan on location
+410,glued_dgs,gohome,1,NAV_HOME,DGS glued: Go home
+411,glued_dgs,unmute,1,UNMUTE,DGS glued: Unmute audio
+412,negative,hey turn on the sun right now,0,,Nonsense target
+413,named_slot,turn on rakib living fan,1,FAN_ON,Named: Named fan
+414,fuzzy_per,turn no front light,1,LIGHT_ON,Typo recovery: Light on location
+415,glued_dgs,turnOffHallwayFan,1,FAN_OFF,DGS glued: Fan off location
+416,fuzzy_per,can you pause music please now,1,MEDIA_PAUSE,Typo recovery: Pause music
+417,temporal_then,turn off james bedroom fan then turn on kitchen light,1,FAN_OFF,Then smarthome
+418,multi_or,come here or go home,1,COME_HERE,Come or home
+419,multi_or,play music or pause music,1,MEDIA_PLAY,Play or pause
+420,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+421,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+422,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+423,stt_noise,COULD 09309582903 YOU SCENE NIGHT $$$ RIGHT $$$ NOW,1,SCENE,Noisy STT: Night scene
+424,single_clean,lock hallway door,1,LOCK,Lock door
+425,temporal_then,disarm alarm then check cameras,1,ALARM_DISARM,Then security
+426,named_slot,go to john office,1,NAV_GO,Named: Navigate to named office
+427,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+428,stt_noise,OKAY UM ER DISARM ALARM RIGHT NOW OKAY THIS 120,1,ALARM_DISARM,Noisy STT: Disarm security
+429,negative,i need to xyz abc def,0,,Random tokens
+430,multi_juxta,turn on bathroom light turn off bathroom fan,1,LIGHT_ON,Back-to-back smarthome
+431,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+432,fuzzy_per,okay um got to tom office okay,1,NAV_GO,Typo recovery: Navigate to named office
+433,negative,um order pizza online okay thanks,0,,Web task
+434,cross_domain,turn on kitchen light and turn off room fan,1,LIGHT_ON,Cross-domain and: Dual smarthome
+435,fuzzy_per,cancel timr,1,TIMER_CANCEL,Typo recovery: Cancel timer
+436,single_clean,go to garage,1,NAV_GO,Navigate to location
+437,stt_noise,okay um go home please 999 xxx please,1,NAV_HOME,Noisy STT: Go home
+438,multi_or,come here or go home,1,COME_HERE,Come or home
+439,stt_noise,ER ER COULD THIS YOU PLAY MUSIC,1,MEDIA_PLAY,Noisy STT: Media and volume
+440,stt_noise,could you follow me a please well 42 okay 09309582903,1,FOLLOW_ME,Noisy STT: Follow user
+441,fuzzy_per,go to lisa office,1,NAV_GO,Typo recovery: Navigate to named office
+442,negative,turn on the weather,0,,Unknown device
+443,single_clean,turn on rakibs back fan,1,FAN_ON,Named fan
+444,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+445,cross_domain,open bedroom curtain and close living curtain,1,CURTAIN_OPEN,Cross-domain and: Dual curtains
+446,stt_noise,next song okay 09309582903,1,NEXT_TRACK,Noisy STT: Next track
+447,named_slot,play sarahs playlist,1,MEDIA_PLAY,Named: Play playlist
+448,cross_domain,disarm alarm then check cameras,1,ALARM_DISARM,Cross-domain then: Then security
+449,stt_noise,Okay 09309582903 A Wait $$$ Please,1,WAIT,Noisy STT: Wait command
+450,temporal_then,set timer for five minutes then turn off room fan,1,TIMER_SET,Then timer
+451,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+452,multi_and,turn on garage light and come here,1,LIGHT_ON,Light and robot
+453,stt_noise,CAN HMM YOU HMM ER NEXT SONG PLEASE UHH,1,NEXT_TRACK,Noisy STT: Next track
+454,multi_and,play music and volume up,1,MEDIA_PLAY,Media and volume
+455,stt_noise,xxx previous song okay,1,PREVIOUS_TRACK,Noisy STT: Previous track
+456,stt_noise,well can you cancel a timer 120 please,1,TIMER_CANCEL,Noisy STT: Cancel timer
+457,negative,tell me a joke,0,,Conversational
+458,temporal_then,set timer for five minutes then turn off room fan,1,TIMER_SET,Then timer
+459,temporal_then,turn off john bedroom fan then turn on kitchen light,1,FAN_OFF,Then smarthome
+460,fuzzy_per,i need to go home,1,NAV_HOME,Typo recovery: Go home
+461,negative,uh open the refrigerator right now,0,,Unknown appliance
+462,stt_noise,wait like please now 09309582903 $$$ 999 999,1,WAIT,Noisy STT: Wait command
+463,temporal_then,go to living room then follow me,1,NAV_GO,Then nav
+464,multi_and,turn on living room light and come here,1,LIGHT_ON,Light and robot
+465,multi_juxta,dock stop,1,NAV_DOCK,Back-to-back robot
+466,stt_noise,hey scene a so party right now the okay,1,SCENE,Noisy STT: Party scene
+467,multi_or,come here or go home,1,COME_HERE,Come or home
+468,multi_juxta,play music volume up,1,MEDIA_PLAY,Back-to-back media
+469,single_clean,come here,1,COME_HERE,Robot come
+470,multi_juxta,arm alarm check garage camera,1,ALARM_ARM,Back-to-back security
+471,multi_or,play music or pause music,1,MEDIA_PLAY,Play or pause
+472,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+473,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+474,single_clean,dock,1,NAV_DOCK,Dock robot
+475,stt_noise,please switch on living hmm room lamp xxx okay thanks,1,LIGHT_ON,Noisy STT: Switch synonym
+476,single_clean,record front camera,1,CAMERA_RECORD,Record camera
+477,multi_and,heat up and cool down,1,TEMP_UP,Climate dual
+478,stt_noise,Can 120 You Go To Uhh Kitchen Please,1,NAV_GO,Noisy STT: Navigate to location
+479,stt_noise,uh go to front right like this now okay,1,NAV_GO,Noisy STT: Navigate to location
+480,cross_domain,turn off garage fan and lock front door,1,FAN_OFF,Cross-domain and: Fan and lock
+481,fuzzy_per,disarm alarms,1,ALARM_DISARM,Typo recovery: Disarm security
+482,named_slot,unlock david door,1,UNLOCK,Named: Unlock named door
+483,stt_noise,i need to come here 999 okay thanks the,1,COME_HERE,Noisy STT: Robot come
+484,fuzzy_per,could you go to david office thanks,1,NAV_GO,Typo recovery: Navigate to named office
+485,named_slot,play john playlist,1,MEDIA_PLAY,Named: Play playlist
+486,stt_noise,um 999 volume up this er now like,1,VOLUME_UP,Noisy STT: Volume up
+487,glued_dgs,comeHere,1,COME_HERE,DGS glued: Robot come
+488,stt_noise,42 $$$ um go to bathroom well please,1,NAV_GO,Noisy STT: Navigate to location
+489,stt_noise,$$$ uhh $$$ hey dock adjfija right now the,1,NAV_DOCK,Noisy STT: Dock robot
+490,named_slot,play rakibs playlist,1,MEDIA_PLAY,Named: Play playlist
+491,temporal_then,pause music then next song,1,MEDIA_PAUSE,Then media
+492,multi_and,play music and volume up,1,MEDIA_PLAY,Media and volume
+493,multi_and,arm alarm and check garage camera,1,ALARM_ARM,Arm and camera
+494,stt_noise,i want to turn on uhh kate living light right now thanks,1,LIGHT_ON,Noisy STT: Named light
+495,single_clean,pause music,1,MEDIA_PAUSE,Pause music
+496,negative,turn on the weather,0,,Unknown device
+497,named_slot,unlock mary hallway door,1,UNLOCK,Named: Unlock named location door
+498,cross_domain,open bedroom curtain then close living curtain,1,CURTAIN_OPEN,Cross-domain then: Dual curtains
+499,single_clean,go to back,1,NAV_GO,Navigate to location
+500,glued_dgs,lockLivingRoomDoor,1,LOCK,DGS glued: Lock door
